@@ -31,6 +31,23 @@ In the DNS panel of the domain, create an **A record**:
   renewal works with "Always Use HTTPS" on.
 * Optional hardening: in the VPS firewall allow ports 80/443 only from Cloudflare IP ranges.
 
+### Server already runs nginx (other websites on the same VPS)
+
+Do **not** run `deploy/init-letsencrypt.sh` or the `nginx` service: ports 80/443 belong to the existing nginx.
+Instead run only the database and the app, bound to `127.0.0.1:8090`, and add one site to the host nginx:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.host-nginx.yml up -d --build db app
+cp deploy/host-nginx/hpos-proxy.conf /etc/nginx/snippets/hpos-proxy.conf
+cp deploy/nginx/cloudflare-realip.inc /etc/nginx/snippets/cloudflare-realip.conf
+sed "s/__DOMAIN__/hpos.example.com/g; s/__PORT__/8090/g" deploy/host-nginx/site.conf.template > /etc/nginx/sites-available/hpos.conf
+ln -s /etc/nginx/sites-available/hpos.conf /etc/nginx/sites-enabled/hpos.conf
+nginx -t && systemctl reload nginx
+certbot --nginx -d hpos.example.com      # adds HTTPS to this site only
+```
+
+Use the same `-f docker-compose.yml -f docker-compose.host-nginx.yml` pair for later `ps`, `logs`, `build` and `up` commands.
+
 ## 2. Prepare the server (once)
 
 ```bash

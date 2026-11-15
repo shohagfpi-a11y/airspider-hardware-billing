@@ -1,0 +1,31 @@
+# Site for the EXISTING host nginx (server already running other websites).
+# Render:  sed "s/__DOMAIN__/hpos.example.com/g; s/__PORT__/8090/g" site.conf.template > /etc/nginx/sites-available/hpos.conf
+# Start with this HTTP-only file, run certbot --nginx for the domain, and certbot adds the HTTPS part itself.
+
+# Real visitor IP behind Cloudflare (Cloudflare ranges only). If another site already includes this file, keep one copy.
+include /etc/nginx/snippets/cloudflare-realip.conf;
+
+limit_req_zone $binary_remote_addr zone=hpos_login:10m rate=10r/m;
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name __DOMAIN__;
+
+    client_max_body_size 8m;   # logo / stamp / signature uploads (2 MB each)
+
+    # health endpoints are for Docker only
+    location /actuator/ { return 404; }
+
+    location = /login {
+        limit_req zone=hpos_login burst=10 nodelay;
+        proxy_pass http://127.0.0.1:__PORT__;
+        include /etc/nginx/snippets/hpos-proxy.conf;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:__PORT__;
+        include /etc/nginx/snippets/hpos-proxy.conf;
+        proxy_read_timeout 120s;
+    }
+}

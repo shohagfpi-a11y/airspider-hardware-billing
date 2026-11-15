@@ -4,6 +4,13 @@ All notable changes are recorded here. Versions follow [Semantic Versioning](htt
 `MAJOR.MINOR.PATCH` (patch = fixes, minor = new features, major = breaking changes such as a data migration that needs manual steps).
 The version is defined once, in `pom.xml`, and shown in the app menu and on the sign-in page.
 
+## [0.0.3] - 2026-11-15
+
+### Added
+- Deployment on a VPS that already runs nginx for other websites: `docker-compose.host-nginx.yml` (app on
+  127.0.0.1:8090 only, no bundled nginx) and `deploy/host-nginx/` site + proxy snippets for the existing nginx,
+  with certificates from certbot's nginx plugin. Documented in docs/DEPLOYMENT.md.
+
 ## [0.0.2] - 2026-11-15
 
 ### Fixed

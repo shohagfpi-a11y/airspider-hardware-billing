@@ -1,0 +1,11 @@
+# Use on a server that ALREADY runs nginx on ports 80/443 (other websites on the same VPS).
+# Only PostgreSQL and the app run in Docker; the app listens on 127.0.0.1:${APP_PORT:-8090} and the existing
+# host nginx proxies the domain to it (see deploy/host-nginx/site.conf.template and docs/DEPLOYMENT.md).
+#
+#   docker compose -f docker-compose.yml -f docker-compose.host-nginx.yml up -d --build db app
+#
+# Never start the "nginx" service from docker-compose.yml on such a server: it would fight the host nginx for 80/443.
+services:
+  app:
+    ports:
+      - "127.0.0.1:${APP_PORT:-8090}:8080"
