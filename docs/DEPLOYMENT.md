@@ -46,7 +46,8 @@ nginx -t && systemctl reload nginx
 certbot --nginx -d hpos.example.com      # adds HTTPS to this site only
 ```
 
-Use the same `-f docker-compose.yml -f docker-compose.host-nginx.yml` pair for later `ps`, `logs`, `build` and `up` commands.
+Simplest: add `COMPOSE_FILE=docker-compose.yml:docker-compose.host-nginx.yml` to `.env`; then plain `docker compose ...`
+and the backup / upgrade / restore scripts automatically use both files and never start the bundled nginx.
 
 ## 2. Prepare the server (once)
 

@@ -127,7 +127,7 @@ Payment amounts must not have more decimals than the currency.
 
 ## 5. Versions and releases
 
-Current version: **0.0.3** (see [CHANGELOG.md](CHANGELOG.md)). The version lives only in `pom.xml` and is shown in the
+Current version: **0.0.4** (see [CHANGELOG.md](CHANGELOG.md)). The version lives only in `pom.xml` and is shown in the
 app menu and on the sign-in page. To release a new version:
 
 ```bash

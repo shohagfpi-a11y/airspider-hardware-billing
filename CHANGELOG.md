@@ -4,6 +4,16 @@ All notable changes are recorded here. Versions follow [Semantic Versioning](htt
 `MAJOR.MINOR.PATCH` (patch = fixes, minor = new features, major = breaking changes such as a data migration that needs manual steps).
 The version is defined once, in `pom.xml`, and shown in the app menu and on the sign-in page.
 
+## [0.0.4] - 2026-11-15
+
+### Fixed
+- `scripts/restore.sh` no longer starts the bundled nginx container on servers that use the host nginx
+  (`COMPOSE_FILE` includes `docker-compose.host-nginx.yml`), so a restore cannot take ports 80/443 from other websites.
+
+### Docs
+- Host-nginx setup: put `COMPOSE_FILE=docker-compose.yml:docker-compose.host-nginx.yml` in `.env` so every
+  `docker compose` command and the backup/upgrade/restore scripts use the right files.
+
 ## [0.0.3] - 2026-11-15
 
 ### Added
