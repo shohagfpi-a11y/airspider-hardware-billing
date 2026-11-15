@@ -8,6 +8,7 @@ set -a; . ./.env; set +a
 ACTIVE=deploy/nginx/active
 mkdir -p "$ACTIVE"
 cp deploy/nginx/proxy_params.inc "$ACTIVE/proxy_params.inc"
+cp deploy/nginx/cloudflare-realip.inc "$ACTIVE/cloudflare-realip.inc"
 
 echo ">> Starting database and application..."
 docker compose up -d db app

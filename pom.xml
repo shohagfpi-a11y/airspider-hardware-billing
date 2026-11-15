@@ -12,7 +12,7 @@
 
   <groupId>com.hardwarebilling</groupId>
   <artifactId>hardware-billing</artifactId>
-  <version>0.0.1</version>
+  <version>0.0.2</version>
   <name>Hardware Billing</name>
   <description>Invoicing, payments and customer balances for a hardware business</description>
 

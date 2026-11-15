@@ -22,6 +22,15 @@ In the DNS panel of the domain, create an **A record**:
 (Add an `AAAA` record only if the VPS has IPv6 and port 80/443 work over it.) Check from your PC:
 `nslookup billing.customer.com` must show the VPS IP **before** requesting the certificate.
 
+### Using Cloudflare (orange cloud)
+
+* While the first certificate is issued (step 5), set the record to **DNS only** (grey cloud) so Let's Encrypt reaches the VPS directly.
+* After step 5 succeeds, switch the record back to **Proxied** and set Cloudflare **SSL/TLS -> Overview -> Full (strict)**.
+  Never use "Flexible": the app redirects HTTP to HTTPS and Flexible would loop forever.
+* Nginx already restores the real visitor IP from Cloudflare (`deploy/nginx/cloudflare-realip.inc`), and certificate
+  renewal works with "Always Use HTTPS" on.
+* Optional hardening: in the VPS firewall allow ports 80/443 only from Cloudflare IP ranges.
+
 ## 2. Prepare the server (once)
 
 ```bash

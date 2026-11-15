@@ -1,4 +1,5 @@
 # Bootstrap configuration used only while the first certificate is being issued.
+include /etc/nginx/conf.d/cloudflare-realip.inc;
 server {
     listen 80;
     server_name __DOMAIN__;

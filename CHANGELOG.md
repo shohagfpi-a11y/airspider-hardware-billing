@@ -4,6 +4,16 @@ All notable changes are recorded here. Versions follow [Semantic Versioning](htt
 `MAJOR.MINOR.PATCH` (patch = fixes, minor = new features, major = breaking changes such as a data migration that needs manual steps).
 The version is defined once, in `pom.xml`, and shown in the app menu and on the sign-in page.
 
+## [0.0.2] - 2026-11-15
+
+### Fixed
+- Deployment behind Cloudflare (proxied / orange cloud): Nginx restores the real visitor IP from `CF-Connecting-IP`
+  for Cloudflare address ranges only, so the login lock-out and rate limit work per visitor instead of per Cloudflare edge.
+- Let's Encrypt renewal also answers the challenge on HTTPS, so it keeps working when Cloudflare "Always Use HTTPS" is on.
+
+### Docs
+- Cloudflare section in docs/DEPLOYMENT.md (DNS only while issuing the first certificate, then Proxied with SSL mode Full (strict)).
+
 ## [0.0.1] - 2026-11-15
 
 First version.
