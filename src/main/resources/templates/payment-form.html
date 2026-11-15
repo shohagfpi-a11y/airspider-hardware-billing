@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Record payment')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('payments')}"></div>
+<main class="page page-narrow">
+  <div class="crumb"><a class="back-btn" th:href="@{/payments}"><svg th:replace="~{fragments :: icon('arrow-left')}"></svg>Back to Payments</a><span class="crumb-path"><a th:href="@{/payments}">Payments</a> / New</span></div>
+  <div class="page-head"><div><h1>Record payment</h1><p>Money received from a customer. Anything not applied to an invoice is kept as advance credit.</p></div></div>
+  <div th:replace="~{fragments :: flash}"></div>
+
+  <form class="card filter-bar mb-3" method="get" th:action="@{/payments/new}">
+    <div class="f grow"><label class="form-label required">Customer</label>
+      <select class="form-select" name="customerId" onchange="this.form.submit()"><option value="">Select customer...</option>
+        <option th:each="c : ${customers}" th:value="${c.id}" th:text="${c.name + ' (' + c.code + ')'}" th:selected="${customerId == c.id}"></option></select></div>
+    <noscript><button class="btn btn-outline-secondary">Load</button></noscript>
+  </form>
+
+  <form th:if="${customerId != null}" th:action="@{/payments}" method="post" class="card" id="payForm">
+    <input type="hidden" name="customerId" th:value="${customerId}">
+    <input type="hidden" name="idempotencyKey" th:value="${key}">
+    <div class="form-section">
+      <h3>Payment</h3><div class="desc">How much was received, when and how.</div>
+      <div class="row g-3">
+        <div class="col-12 col-md-4"><label class="form-label required">Amount received</label><input id="amount" class="form-control form-control-lg" name="amount" inputmode="decimal" required placeholder="0.00"></div>
+        <div class="col-6 col-md-4"><label class="form-label required">Date</label><input type="date" class="form-control" name="paymentDate" th:value="${today}" required></div>
+        <div class="col-6 col-md-4"><label class="form-label required">Method</label><select class="form-select" name="method" id="method"><option th:each="m : ${methods}" th:value="${m}" th:text="${m.label}"></option></select></div>
+        <!-- only for non-cash payments; the default / only bank is pre-selected -->
+        <div class="col-12 col-md-6 d-none" id="bankWrap"><label class="form-label">Received into bank</label><select class="form-select" name="bankAccountId" id="bankSel"><option value="">-</option><option th:each="b : ${banks}" th:value="${b.id}" th:text="${b.bankName}" th:attr="data-default=${b.defaultAccount}"></option></select></div>
+        <div class="col-12 col-md-6"><label class="form-label">Transaction / cheque no.</label><input class="form-control" name="reference"></div>
+        <div class="col-12"><label class="form-label">Notes</label><input class="form-control" name="notes"></div>
+      </div>
+    </div>
+    <div class="form-section">
+      <h3>Apply to invoices <span class="hint fw-normal">(optional)</span></h3><div class="desc">Enter how much of this payment goes to each open invoice.</div>
+      <div class="table-wrap" th:if="${!#lists.isEmpty(open)}"><table class="table table-modern">
+        <thead><tr><th>Invoice</th><th>Due</th><th class="num">Balance</th><th style="width:170px">Apply</th></tr></thead>
+        <tbody><tr th:each="r : ${open}"><td class="cell-title" th:text="${r.number()}"></td>
+          <td><span th:text="${@fmt.date(r.due())}"></span> <span class="badge text-bg-danger" th:if="${r.overdue()}">Overdue</span></td>
+          <td class="num fw-semibold" th:text="${@fmt.money(r.balance())}"></td>
+          <td><input class="form-control alloc" th:name="'alloc_' + ${r.id()}" th:attr="data-balance=${r.balance()}, data-pref=${r.id() == invoiceId}" inputmode="decimal" placeholder="0.00"></td></tr></tbody></table></div>
+      <div class="alert alert-info mb-0" th:if="${#lists.isEmpty(open)}">This customer has no open invoices: the full amount will be kept as advance credit.</div>
+      <div class="d-flex gap-4 mt-3 small"><span>Applied: <b id="allocTotal">0.00</b></span><span>Kept as credit: <b id="creditLeft">0.00</b></span></div>
+    </div>
+    <div class="form-actions">
+      <a class="btn btn-light" th:href="@{/payments}">Cancel</a>
+      <button class="btn btn-success" id="saveBtn"><svg th:replace="~{fragments :: icon('check')}"></svg>Save receipt</button>
+    </div>
+  </form>
+</main>
+<script>
+(function () {
+  const amt = document.getElementById('amount'); if (!amt) return;
+  const inputs = [...document.querySelectorAll('.alloc')];
+  const method = document.getElementById('method'), bankSel = document.getElementById('bankSel'), bankWrap = document.getElementById('bankWrap');
+  function bankUi() {
+    const cash = method.value === 'CASH';
+    bankWrap.classList.toggle('d-none', cash);
+    if (cash) { bankSel.value = ''; return; }
+    const opts = [...bankSel.options].filter((o) => o.value);
+    if (!bankSel.value) { const d = opts.find((o) => o.dataset.default === 'true') || (opts.length === 1 ? opts[0] : null); if (d) bankSel.value = d.value; }
+  }
+  method.addEventListener('change', bankUi); bankUi();
+  function upd() {
+    const a = parseFloat(amt.value) || 0; let t = 0; inputs.forEach(i => t += parseFloat(i.value) || 0);
+    document.getElementById('allocTotal').textContent = t.toFixed(2);
+    const left = a - t; const el = document.getElementById('creditLeft');
+    el.textContent = left.toFixed(2); el.className = left < -0.0001 ? 'text-danger' : '';
+  }
+  amt.addEventListener('input', () => { // when exactly one invoice is pre-selected, suggest min(amount, balance)
+    const pref = inputs.find(i => i.dataset.pref === 'true');
+    if (pref && !pref.dataset.touched) { const a = parseFloat(amt.value) || 0, b = parseFloat(pref.dataset.balance) || 0; pref.value = a > 0 ? Math.min(a, b) : ''; }
+    upd();
+  });
+  inputs.forEach(i => i.addEventListener('input', () => { i.dataset.touched = '1'; upd(); }));
+  document.getElementById('payForm').addEventListener('submit', () => { document.getElementById('saveBtn').disabled = true; });
+  amt.focus();
+})();
+</script>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title th:text="'Receipt ' + ${d.receiptNo()}">Receipt</title>
+  <style th:utext="${docCss}"></style>
+</head>
+<body>
+<div class="toolbar" th:if="${screen}">
+  <button class="primary" onclick="window.print()">Print</button>
+  <script>if (/[?&]autoprint=1/.test(location.search)) window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 350); });</script>
+  <a th:href="'/payments/' + ${d.id()} + '/receipt.pdf'">Download PDF</a>
+  <a th:href="'/payments/' + ${d.id()}">Back</a>
+</div>
+<div class="sheet">
+<div class="banner banner-void" th:if="${d.reversed()}" th:text="${d.reverseInfo()}">REVERSED</div>
+<table class="hdr"><tr>
+  <td style="width:52%">
+    <img class="logo" th:if="${d.logo()}" th:src="${d.logo()}" alt=""/>
+    <div class="brand-name" th:text="${d.company().name()}">Company</div>
+    <div class="small wrap" th:text="${d.company().address()}"></div>
+    <div class="small"><span th:if="${d.company().taxNumber()}">TRN: <b th:text="${d.company().taxNumber()}"></b></span>
+      <span th:if="${d.company().mobile()}"> &#183; Mobile: <span th:text="${d.company().mobile()}"></span></span></div>
+  </td>
+  <td style="width:48%"><p class="doc-title">PAYMENT RECEIPT</p><div class="doc-no" th:text="${d.receiptNo()}">RC-1</div>
+    <div class="right small muted">Date: <span th:text="${d.date()}"></span></div></td>
+</tr></table>
+
+<table class="info"><tr>
+  <td class="cell"><div class="box"><h4>Received from</h4>
+    <div class="bold" th:text="${d.customerName()}"></div><div class="small muted" th:text="${d.customerCode()}"></div>
+    <div th:if="${d.customerTrn()}">TRN: <span th:text="${d.customerTrn()}"></span></div></div></td>
+  <td class="gap"></td>
+  <td class="cell"><div class="box"><h4>Payment</h4>
+    <table class="kv">
+      <tr><td class="k">Amount</td><td class="big" th:text="${d.currency()} + ' ' + ${d.amount()}"></td></tr>
+      <tr><td class="k">Method</td><td th:text="${d.method()}"></td></tr>
+      <tr th:if="${d.reference()}"><td class="k">Reference</td><td class="wrap" th:text="${d.reference()}"></td></tr>
+      <tr th:if="${d.bank()}"><td class="k">Received into</td><td class="wrap" th:text="${d.bank()}"></td></tr>
+    </table></div></td>
+</tr></table>
+
+<div class="words" style="margin-bottom:3mm"><h4>Amount received in words</h4><div th:text="${d.amountInWords()}"></div></div>
+
+<div th:if="${d.notes()}" style="margin-bottom:3mm"><b>Notes:</b> <span th:text="${d.notes()}"></span></div>
+
+<table class="plain" style="margin-bottom:3mm">
+  <thead><tr><th>Applied to invoice</th><th>Date</th><th>Status</th><th class="r">Amount</th></tr></thead>
+  <tbody>
+    <tr th:each="a : ${d.allocations()}"><td th:text="${a.invoiceNo()}"></td><td th:text="${a.date()}"></td><td th:text="${a.status()}"></td><td class="r" th:text="${a.amount()}"></td></tr>
+    <tr th:if="${#lists.isEmpty(d.allocations())}"><td colspan="4" class="muted">Not yet applied to an invoice (held as customer credit).</td></tr>
+  </tbody>
+</table>
+
+<table class="summary"><tr><td class="left"></td><td>
+  <table class="tot">
+    <tr><td>Amount received</td><td class="right nowrap" th:text="${d.amount()}"></td></tr>
+    <tr><td>Applied to invoices</td><td class="right nowrap" th:text="${d.allocated()}"></td></tr>
+    <tr><td>Refunded</td><td class="right nowrap" th:text="${d.refunded()}"></td></tr>
+    <tr class="grand"><td>Credit available (as of <span th:text="${d.asOf()}"></span>)</td><td class="right nowrap" th:text="${d.available()}"></td></tr>
+  </table></td></tr></table>
+
+<table class="sign"><tr>
+  <td><div class="area"></div><div class="lbl">Customer signature</div></td>
+  <td><div class="area"><img th:if="${d.stamp()}" th:src="${d.stamp()}" alt=""/><img th:if="${d.signature()}" th:src="${d.signature()}" alt=""/></div><div class="lbl">Received by - <span th:text="${d.company().name()}"></span></div></td>
+</tr></table>
+</div>
+</body>
+</html>

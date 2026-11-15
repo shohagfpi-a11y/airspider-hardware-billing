@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title th:text="${d.title()} + ' ' + ${d.number()}">Invoice</title>
+  <style th:utext="${docCss}"></style>
+  <style th:if="${d.footer() != ''}" th:utext="'@page { @bottom-left { content: &quot;' + ${d.footer()} + '&quot;; font-size: 7.5pt; color: #64748b; } }'"></style>
+  <style th:if="${d.draft()}">@page { @top-center { content: "DRAFT - not an issued invoice"; font-size: 8pt; color: #b45309; font-weight: bold; } }</style>
+  <style th:if="${d.voided()}">@page { @top-center { content: "VOIDED"; font-size: 8pt; color: #b91c1c; font-weight: bold; } }</style>
+</head>
+<body>
+<div class="toolbar" th:if="${screen}">
+  <button class="primary" onclick="window.print()">Print</button>
+  <script>if (/[?&]autoprint=1/.test(location.search)) window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 350); });</script>
+  <a th:href="'/invoices/' + ${d.id()} + '/pdf'">Download PDF</a>
+  <a th:href="'/invoices/' + ${d.id()}">Back</a>
+</div>
+<div class="sheet">
+
+<!-- accent band: document title, number, status -->
+<table class="band"><tr>
+  <td class="t" th:text="${d.title()}">TAX INVOICE</td>
+  <td class="n">
+    <span th:text="${d.number()}">INV-1</span>
+    <span class="pill pill-draft" th:if="${d.draft()}">DRAFT</span>
+    <span class="pill pill-void" th:if="${d.voided()}">VOIDED</span>
+    <span class="pill pill-paid" th:if="${d.status()=='ISSUED' and d.paymentStatus()=='PAID'}">PAID</span>
+    <span class="pill pill-part" th:if="${d.status()=='ISSUED' and d.paymentStatus()=='PARTIALLY_PAID'}">PARTLY PAID</span>
+    <span class="pill pill-unpaid" th:if="${d.status()=='ISSUED' and d.paymentStatus()=='UNPAID'}">UNPAID</span>
+  </td>
+</tr></table>
+
+<div class="banner" th:if="${d.draft()}">DRAFT - preview only. This is not a valid invoice until it is issued.</div>
+<div class="banner banner-void" th:if="${d.voided()}" th:text="${d.voidInfo()}">VOIDED</div>
+
+<!-- company + barcode -->
+<table class="inv-head"><tr>
+  <td style="width:62%">
+    <img class="logo" th:if="${d.logo()}" th:src="${d.logo()}" alt=""/>
+    <div class="brand-name" th:text="${d.company().name()}">Company</div>
+    <div th:if="${d.company().legalName() != d.company().name()}" class="small muted" th:text="${d.company().legalName()}"></div>
+    <div class="small wrap" th:text="${d.company().address()}"></div>
+    <div class="small"><span th:text="${d.company().city()}"></span><span th:if="${d.company().city() != null and d.company().country() != null}">, </span><span th:text="${d.company().country()}"></span></div>
+    <div class="small" th:if="${d.company().taxNumber()}">TRN: <b th:text="${d.company().taxNumber()}"></b></div>
+    <div class="small">
+      <span th:if="${d.company().mobile()}">Mobile: <span th:text="${d.company().mobile()}"></span>&#160;&#160;</span>
+      <span th:if="${d.company().phone()}">Tel: <span th:text="${d.company().phone()}"></span>&#160;&#160;</span>
+    </div>
+    <div class="small"><span th:text="${d.company().email()}"></span><span th:if="${d.company().website()}"> &#183; <span th:text="${d.company().website()}"></span></span></div>
+  </td>
+  <td style="width:38%">
+    <div class="barcode" th:if="${d.barcode()}">
+      <img th:src="${d.barcode()}" alt="barcode"/>
+      <div class="num" th:text="${d.number()}">INV-1</div>
+    </div>
+  </td>
+</tr></table>
+
+<!-- key facts -->
+<table class="meta"><tr>
+  <td><div class="k">Invoice date</div><div class="v" th:text="${d.invoiceDate()}"></div></td>
+  <td><div class="k">Due date</div><div class="v" th:text="${d.dueDate()}"></div></td>
+  <td th:if="${d.deliveryNote()}"><div class="k">Delivery note</div><div class="v wrap" th:text="${d.deliveryNote()}"></div></td>
+  <td th:if="${d.lpo()}"><div class="k">LPO no.</div><div class="v wrap" th:text="${d.lpo()}"></div></td>
+  <td th:if="${d.deliveryDate() != ''}"><div class="k">Date of delivery</div><div class="v" th:text="${d.deliveryDate()}"></div></td>
+</tr></table>
+
+<!-- bill to + amount due -->
+<table class="cards"><tr>
+  <td class="c1"><div class="card">
+    <h4>Bill to</h4>
+    <div class="bold wrap" style="font-size:10.5pt" th:text="${d.customer().name()}">Customer</div>
+    <div class="wrap" th:text="${d.customer().address()}"></div>
+    <div th:if="${d.customer().contactPerson()}">Attn: <span th:text="${d.customer().contactPerson()}"></span></div>
+    <div th:if="${d.customer().taxNumber()}">TRN: <b th:text="${d.customer().taxNumber()}"></b></div>
+    <div><span th:if="${d.customer().mobile()}">Mobile: <span th:text="${d.customer().mobile()}"></span>&#160;&#160;</span>
+         <span th:if="${d.customer().phone()}">Tel: <span th:text="${d.customer().phone()}"></span></span></div>
+  </div></td>
+  <td class="c2"><div class="card due-card">
+    <h4 th:text="${d.draft() ? 'Invoice total' : (d.voided() ? 'Status' : 'Amount due')}">Amount due</h4>
+    <div class="amt" th:if="${d.voided()}">VOIDED</div>
+    <div class="amt" th:if="${!d.voided()}"><span class="cur" th:text="${d.currency()}">AED</span> <span th:text="${d.draft() ? d.grand() : d.balance()}">0.00</span></div>
+    <div class="sub" th:if="${d.status()=='ISSUED'}"><span th:if="${d.paymentStatus()=='PAID'}">Paid in full</span><span th:if="${d.paymentStatus()!='PAID'}">Due by <span th:text="${d.dueDate()}"></span></span> &#183; as of <span th:text="${d.asOf()}"></span></div>
+    <div class="sub" th:if="${d.draft()}">Not yet issued</div>
+  </div></td>
+</tr></table>
+
+<!-- items -->
+<table class="items">
+  <colgroup>
+    <col style="width:4%"/>
+    <col th:if="${!d.hasDiscount()}" style="width:39%"/><col th:if="${d.hasDiscount()}" style="width:33%"/>
+    <col style="width:9%"/><col style="width:11%"/><col th:if="${d.hasDiscount()}" style="width:6%"/>
+    <col style="width:12%"/><col style="width:11%"/><col style="width:14%"/>
+  </colgroup>
+  <thead><tr>
+    <th>#</th><th>Description</th><th class="r">Qty</th><th class="r">Unit price</th><th class="r" th:if="${d.hasDiscount()}">Disc.</th>
+    <th class="r">Net</th><th class="r" th:text="${d.taxLabel()}">VAT</th><th class="r">Total</th>
+  </tr></thead>
+  <tbody>
+    <tr th:each="l, it : ${d.lines()}" th:classappend="${it.even} ? 'alt'">
+      <td th:text="${l.no()}">1</td>
+      <td class="desc">
+        <div class="item-name" th:text="${l.description()}">Item</div>
+        <div class="item-sub" th:if="${l.code()}">Code: <span class="code" th:text="${l.code()}"></span></div>
+        <div class="item-sub" th:if="${l.serial()}">S/N: <span th:text="${l.serial()}"></span></div>
+        <div class="warranty" th:if="${l.warranty()}" th:text="${l.warranty()}"></div>
+      </td>
+      <td class="r nowrap"><span th:text="${l.qty()}">1</span> <span class="muted small" th:text="${l.unit()}"></span></td>
+      <td class="r nowrap" th:text="${l.price()}">0.00</td>
+      <td class="r nowrap" th:if="${d.hasDiscount()}" th:text="${l.discount()}"></td>
+      <td class="r nowrap" th:text="${l.net()}">0.00</td>
+      <td class="r nowrap"><div th:text="${l.tax()}">0.00</div><div class="vat-rate" th:text="${l.taxRate()}">5%</div></td>
+      <td class="r nowrap bold" th:text="${l.total()}">0.00</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- bank/terms + totals -->
+<table class="summary"><tr>
+  <td class="left">
+    <div class="words">
+      <h4>Amount in words</h4>
+      <div th:text="${d.amountInWords()}">UAE Dirhams ... Only</div>
+    </div>
+    <div class="bank" th:if="${d.bank()}">
+      <h4>Pay by bank transfer</h4>
+      <table class="kv">
+        <tr><td class="k">Bank</td><td th:text="${d.bank().bankName()}"></td></tr>
+        <tr><td class="k">Account holder</td><td th:text="${d.bank().accountHolder()}"></td></tr>
+        <tr th:if="${d.bank().accountNumber()}"><td class="k">Account no.</td><td th:text="${d.bank().accountNumber()}"></td></tr>
+        <tr th:if="${d.bank().iban()}"><td class="k">IBAN</td><td class="bold" th:text="${d.bank().iban()}"></td></tr>
+        <tr th:if="${d.bank().swift()}"><td class="k">SWIFT / BIC</td><td th:text="${d.bank().swift()}"></td></tr>
+        <tr th:if="${d.bank().branch()}"><td class="k">Branch</td><td th:text="${d.bank().branch()}"></td></tr>
+      </table>
+    </div>
+    <div class="terms" th:if="${d.paymentTerms()}"><h4>Payment terms</h4><div class="wrap" th:text="${d.paymentTerms()}"></div></div>
+    <div class="terms" th:if="${d.notes()}"><h4>Notes</h4><div class="wrap" th:text="${d.notes()}"></div></div>
+  </td>
+  <td>
+    <div class="tot-card">
+      <table class="tot">
+        <tr><td>Subtotal</td><td class="right nowrap" th:text="${d.gross()}"></td></tr>
+        <tr th:if="${d.hasDiscount()}"><td>Discount</td><td class="right nowrap" th:text="'-' + ${d.discount()}"></td></tr>
+        <tr th:if="${d.hasDiscount()}"><td>Net amount</td><td class="right nowrap" th:text="${d.net()}"></td></tr>
+        <tr><td th:text="${d.taxLabel()}">VAT</td><td class="right nowrap" th:text="${d.tax()}"></td></tr>
+        <tr class="grand"><td>Grand total (<span th:text="${d.currency()}"></span>)</td><td class="right nowrap" th:text="${d.grand()}"></td></tr>
+      </table>
+      <th:block th:if="${d.status()=='ISSUED'}">
+        <div class="asof">Payments as of <b th:text="${d.asOf()}"></b> (invoice details above are as issued)</div>
+        <table class="pay" th:if="${!#lists.isEmpty(d.payments())}">
+          <tr th:each="p : ${d.payments()}"><td th:text="${p.label()} + ' ' + ${p.receiptNo()} + ' (' + ${p.date()} + ')'"></td><td class="right nowrap" th:text="${p.amount()}"></td></tr>
+        </table>
+        <table class="tot">
+          <tr th:if="${d.hasAdvance()}"><td>Advance applied</td><td class="right nowrap" th:text="${d.advanceApplied()}"></td></tr>
+          <tr class="sep"><td>Total paid / applied</td><td class="right nowrap" th:text="${d.paid()}"></td></tr>
+          <tr class="due"><td>Balance due</td><td class="right nowrap" th:text="${d.balance()}"></td></tr>
+        </table>
+      </th:block>
+    </div>
+  </td>
+</tr></table>
+
+<div class="notice" th:if="${d.footerNote()}"><b>Important:</b> <span th:text="${d.footerNote()}"></span></div>
+
+<div class="decl"><b>Declaration:</b>
+  <span th:text="${d.declaration() ?: 'We declare that this invoice shows the actual price of the goods and services described and that all particulars are true and correct.'}"></span></div>
+
+<table class="sign"><tr>
+  <td><div class="area"></div><div class="lbl">Customer seal &amp; signature</div></td>
+  <td><div class="area"><img th:if="${d.stamp()}" th:src="${d.stamp()}" alt=""/><img th:if="${d.signature()}" th:src="${d.signature()}" alt=""/></div>
+      <div class="lbl">Authorised signature &amp; company stamp</div></td>
+</tr></table>
+<div class="thanks">Thank you for your business</div>
+
+</div>
+</body>
+</html>

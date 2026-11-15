@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Reports')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('reports')}"></div>
+<main class="page">
+  <div class="page-head"><div><h1>Reports</h1><p>Invoiced value and cash received. These are not profit reports: purchase costs and stock are not tracked.</p></div></div>
+  <div class="row g-3">
+    <div class="col-12 col-md-6 col-xl-4"><a class="card card-pad h-100 d-block text-reset" style="text-decoration:none" th:href="@{/reports/invoices}">
+      <span class="chip chip-blue mb-3"><svg th:replace="~{fragments :: icon('invoice')}"></svg></span>
+      <h2 class="section-title">Invoice list</h2><p class="hint mb-0">Filter by date, customer, document and payment status, or overdue. CSV export.</p></a></div>
+    <div class="col-12 col-md-6 col-xl-4"><a class="card card-pad h-100 d-block text-reset" style="text-decoration:none" th:href="@{/reports/outstanding}">
+      <span class="chip chip-red mb-3"><svg th:replace="~{fragments :: icon('alert')}"></svg></span>
+      <h2 class="section-title">Outstanding invoices</h2><p class="hint mb-0">Unpaid balances as of today with days overdue.</p></a></div>
+    <div class="col-12 col-md-6 col-xl-4"><a class="card card-pad h-100 d-block text-reset" style="text-decoration:none" th:href="@{/reports/receipts}">
+      <span class="chip chip-green mb-3"><svg th:replace="~{fragments :: icon('trend')}"></svg></span>
+      <h2 class="section-title">Payment receipts</h2><p class="hint mb-0">Money actually received, by payment date.</p></a></div>
+    <div class="col-12 col-md-6 col-xl-4"><a class="card card-pad h-100 d-block text-reset" style="text-decoration:none" th:href="@{/reports/credits}">
+      <span class="chip chip-cyan mb-3"><svg th:replace="~{fragments :: icon('wallet')}"></svg></span>
+      <h2 class="section-title">Customer advances &amp; credit</h2><p class="hint mb-0">Receivables and advance credit per customer, kept separate.</p></a></div>
+    <div class="col-12 col-md-6 col-xl-4"><a class="card card-pad h-100 d-block text-reset" style="text-decoration:none" th:href="@{/customers}">
+      <span class="chip chip-violet mb-3"><svg th:replace="~{fragments :: icon('file')}"></svg></span>
+      <h2 class="section-title">Customer statements</h2><p class="hint mb-0">Open a customer, then Statement, PDF or CSV.</p></a></div>
+  </div>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

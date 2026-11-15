@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Company settings')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('settings')}"></div>
+<main class="page page-narrow">
+  <div class="page-head"><div><h1>Company settings</h1><p>Shown on invoices, receipts and statements. Issued invoices keep the details they were issued with.</p></div></div>
+  <div th:replace="~{fragments :: flash}"></div>
+  <form th:action="@{/settings}" th:object="${form}" method="post" enctype="multipart/form-data" class="card">
+    <div class="alert alert-danger m-3 mb-0" th:if="${#fields.hasErrors('*')}">Please correct the highlighted fields.</div>
+    <div class="form-section">
+      <h3>Company</h3><div class="desc">Legal details and contacts.</div>
+      <div class="row g-3">
+        <div class="col-12 col-md-6"><label class="form-label required">Legal company name</label><input class="form-control" th:field="*{legalName}" th:classappend="${#fields.hasErrors('legalName')} ? 'is-invalid'"><div class="invalid-feedback" th:errors="*{legalName}"></div></div>
+        <div class="col-12 col-md-6"><label class="form-label">Trading name</label><input class="form-control" th:field="*{tradingName}"></div>
+        <div class="col-12"><label class="form-label">Business address</label><input class="form-control" th:field="*{address}"></div>
+        <div class="col-6 col-md-4"><label class="form-label">City</label><input class="form-control" th:field="*{city}"></div>
+        <div class="col-6 col-md-4"><label class="form-label">Country</label><input class="form-control" th:field="*{country}"></div>
+        <div class="col-12 col-md-4"><label class="form-label">TRN (tax registration)</label><input class="form-control mono" th:field="*{taxNumber}"></div>
+        <div class="col-6 col-md-3"><label class="form-label">Telephone</label><input class="form-control" th:field="*{phone}"></div>
+        <div class="col-6 col-md-3"><label class="form-label">Mobile</label><input class="form-control" th:field="*{mobile}"></div>
+        <div class="col-6 col-md-3"><label class="form-label">Email</label><input class="form-control" th:field="*{email}" th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"></div>
+        <div class="col-6 col-md-3"><label class="form-label">Website</label><input class="form-control" th:field="*{website}"></div>
+      </div>
+    </div>
+    <div class="form-section">
+      <h3>Branding</h3><div class="desc">PNG or JPEG, up to 2 MB each.</div>
+      <div class="row g-3">
+        <div class="col-12 col-md-4"><label class="form-label">Logo</label>
+          <div class="border rounded-3 p-2 mb-2 text-center bg-light" style="min-height:70px"><img th:if="${co.logoFile}" th:src="@{/files/{n}(n=${co.logoFile})}" style="max-height:56px;max-width:100%"><span class="hint" th:unless="${co.logoFile}">No logo</span></div>
+          <input type="file" class="form-control form-control-sm" name="logo" accept="image/png,image/jpeg"></div>
+        <div class="col-12 col-md-4"><label class="form-label">Company stamp</label>
+          <div class="border rounded-3 p-2 mb-2 text-center bg-light" style="min-height:70px"><img th:if="${co.stampFile}" th:src="@{/files/{n}(n=${co.stampFile})}" style="max-height:56px;max-width:100%"><span class="hint" th:unless="${co.stampFile}">No stamp</span></div>
+          <input type="file" class="form-control form-control-sm" name="stamp" accept="image/png,image/jpeg">
+          <div class="form-check mt-1" th:if="${co.stampFile}"><input type="checkbox" class="form-check-input" th:field="*{removeStamp}"><label class="form-check-label small" for="removeStamp">Remove</label></div></div>
+        <div class="col-12 col-md-4"><label class="form-label">Authorised signature</label>
+          <div class="border rounded-3 p-2 mb-2 text-center bg-light" style="min-height:70px"><img th:if="${co.signatureFile}" th:src="@{/files/{n}(n=${co.signatureFile})}" style="max-height:56px;max-width:100%"><span class="hint" th:unless="${co.signatureFile}">No signature</span></div>
+          <input type="file" class="form-control form-control-sm" name="signature" accept="image/png,image/jpeg">
+          <div class="form-check mt-1" th:if="${co.signatureFile}"><input type="checkbox" class="form-check-input" th:field="*{removeSignature}"><label class="form-check-label small" for="removeSignature">Remove</label></div></div>
+      </div>
+    </div>
+    <div class="form-section">
+      <h3>Currency &amp; tax</h3><div class="desc">Prices are entered excluding tax; tax is added per line and rounded half-up to the currency's decimals.</div>
+      <div class="row g-3">
+        <div class="col-6 col-md-3"><label class="form-label required">Currency</label><input class="form-control" th:field="*{currency}"></div>
+        <div class="col-6 col-md-3"><label class="form-label required">Timezone</label><input class="form-control" th:field="*{timezone}"></div>
+        <div class="col-6 col-md-3"><label class="form-label required">Tax label</label><input class="form-control" th:field="*{taxLabel}"></div>
+        <div class="col-6 col-md-3"><label class="form-label required">Default tax %</label><input class="form-control" th:field="*{defaultTaxRate}" th:classappend="${#fields.hasErrors('defaultTaxRate')} ? 'is-invalid'"></div>
+      </div>
+    </div>
+    <div class="form-section">
+      <h3>Numbering &amp; defaults</h3><div class="desc">The next invoice number can only be raised, never lowered, so numbers are never reused.</div>
+      <div class="row g-3">
+        <div class="col-6 col-md-3"><label class="form-label required">Invoice prefix</label><input class="form-control" th:field="*{invoicePrefix}"></div>
+        <div class="col-6 col-md-3"><label class="form-label">Next invoice no.</label><input type="number" min="1" class="form-control" th:field="*{nextInvoiceNumber}"></div>
+        <div class="col-6 col-md-3"><label class="form-label required">Receipt prefix</label><input class="form-control" th:field="*{receiptPrefix}"></div>
+        <div class="col-6 col-md-3"><label class="form-label required">Payment terms (days)</label><input type="number" class="form-control" th:field="*{defaultPaymentTermsDays}"></div>
+        <div class="col-12 col-md-6"><label class="form-label">Default payment terms text</label><textarea class="form-control" rows="2" th:field="*{defaultPaymentTerms}"></textarea></div>
+        <div class="col-12 col-md-6"><label class="form-label">Default invoice notes</label><textarea class="form-control" rows="2" th:field="*{defaultNotes}"></textarea></div>
+        <div class="col-12"><label class="form-label">Declaration printed on invoices</label><textarea class="form-control" rows="2" th:field="*{declarationText}"></textarea></div>
+        <div class="col-12"><label class="form-label">Notice at the bottom of every invoice</label><textarea class="form-control" rows="2" th:field="*{invoiceFooterNote}" placeholder="e.g. If you find any issue, inform us within 3 days..."></textarea>
+          <div class="hint">Leave empty to print no notice.</div></div>
+      </div>
+    </div>
+    <div class="form-actions"><span class="hint me-auto align-self-center">This software does not certify tax-authority or e-invoicing compliance.</span><button class="btn btn-primary"><svg th:replace="~{fragments :: icon('check')}"></svg>Save settings</button></div>
+  </form>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

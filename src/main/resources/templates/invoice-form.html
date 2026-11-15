@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Invoice')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('invoices')}"></div>
+<main class="page inv-page">
+  <div class="crumb"><a class="back-btn" th:href="@{/invoices}"><svg th:replace="~{fragments :: icon('arrow-left')}"></svg>Back to Invoices</a><span class="crumb-path"><a th:href="@{/invoices}">Invoices</a> / <span th:text="${number == null} ? 'New' : ${number}"></span></span></div>
+  <div class="page-head">
+    <div><h1 th:text="${number == null} ? 'New invoice' : 'Edit draft'"></h1><p>Prices exclude tax &middot; totals are calculated by the server</p></div>
+  </div>
+  <div id="formError" class="alert alert-danger d-none"></div>
+
+  <!-- 1. who / when -->
+  <div class="card card-pad mb-3">
+    <div class="row g-3">
+      <div class="col-12 col-md-5"><label class="form-label required">Customer</label>
+        <select class="form-select" id="customerId"><option value="">Select customer...</option>
+          <option th:each="c : ${customers}" th:value="${c.id}" th:text="${c.name + ' (' + c.code + ')'}" th:attr="data-terms=${c.defaultPaymentTermsDays}"></option></select></div>
+      <div class="col-6 col-md-2"><label class="form-label required">Invoice date</label><input type="date" class="form-control" id="invoiceDate"></div>
+      <div class="col-6 col-md-2"><label class="form-label required">Due date</label><input type="date" class="form-control" id="dueDate"></div>
+      <div class="col-12 col-md-3"><label class="form-label">Payment</label>
+        <div class="btn-group w-100" role="group">
+          <input type="radio" class="btn-check" name="payMode" id="payCash" value="cash" checked><label class="btn btn-outline-primary" for="payCash">Cash</label>
+          <input type="radio" class="btn-check" name="payMode" id="payBank" value="bank"><label class="btn btn-outline-primary" for="payBank">Bank</label>
+        </div></div>
+      <!-- shown only when "Bank" is chosen; the default / only bank is pre-selected -->
+      <div class="col-12 col-md-6 d-none" id="bankWrap"><label class="form-label">Bank account to print on the invoice</label>
+        <select class="form-select" id="bankAccountId">
+          <option value="">Select bank...</option>
+          <option th:each="b : ${banks}" th:value="${b.id}" th:text="${b.label}" th:attr="data-default=${b.defaultAccount}"></option></select>
+        <div class="small text-warning mt-1 d-none" id="noBank">No active bank account yet. Add one under Admin &rarr; Bank accounts.</div></div>
+    </div>
+    <div class="mt-3"><a class="small" data-bs-toggle="collapse" href="#moreRef" role="button">Delivery note, LPO &amp; delivery date (optional)</a></div>
+    <div class="collapse" id="moreRef"><div class="row g-3 mt-0">
+      <div class="col-12 col-md-4"><label class="form-label">Delivery note no.</label><input class="form-control" id="deliveryNoteNo" placeholder="e.g. 1523, 1524"></div>
+      <div class="col-12 col-md-4"><label class="form-label">LPO / customer PO no.</label><input class="form-control" id="lpoNo"></div>
+      <div class="col-12 col-md-4"><label class="form-label">Delivery date</label><input type="date" class="form-control" id="deliveryDate"></div>
+    </div></div>
+  </div>
+
+  <!-- 2. items -->
+  <div class="card card-pad mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h2 class="section-title">Items</h2>
+      <span class="small text-muted d-none d-md-inline">Type a name, product number or scan a barcode &middot; <b>Enter</b> picks &amp; moves on</span>
+    </div>
+    <table class="grid table table-sm mb-2" id="grid">
+      <thead><tr class="small text-muted"><th style="width:28px">#</th><th>Product</th><th style="width:80px">Qty</th><th style="width:70px">Unit</th>
+        <th style="width:105px">Price</th><th style="width:70px">Disc %</th><th style="width:70px">Tax %</th><th style="width:118px">Warranty</th><th class="text-end" style="width:105px">Total</th><th style="width:40px"></th></tr></thead>
+      <tbody id="lines"></tbody></table>
+    <div><button type="button" class="btn btn-outline-primary" id="addLine">+ Add line</button></div>
+  </div>
+
+  <!-- 3. notes + totals -->
+  <div class="row g-3 mb-5">
+    <div class="col-12 col-lg-7"><div class="card card-pad h-100">
+      <label class="form-label">Payment terms</label><textarea class="form-control mb-2" rows="2" id="paymentTerms"></textarea>
+      <label class="form-label">Notes</label><textarea class="form-control" rows="2" id="notes"></textarea></div></div>
+    <div class="col-12 col-lg-5"><div class="card card-pad h-100"><table class="totals-box w-100">
+      <tr><td>Subtotal</td><td class="num" id="tGross">0</td></tr>
+      <tr><td>Discount</td><td class="num" id="tDiscount">0</td></tr>
+      <tr><td>Net amount</td><td class="num" id="tNet">0</td></tr>
+      <tr><td th:text="${co.taxLabel}">VAT</td><td class="num" id="tTax">0</td></tr>
+      <tr class="grand"><td>Total (<span th:text="${co.currency}"></span>)</td><td class="num" id="tGrand">0</td></tr></table></div></div>
+  </div>
+</main>
+
+<!-- sticky action bar -->
+<div class="action-bar d-print-none">
+  <div class="action-total"><span class="small text-muted">Total</span> <b id="barTotal">0</b> <span class="small text-muted" th:text="${co.currency}"></span></div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-light" th:href="@{/invoices}">Cancel</a>
+    <button class="btn btn-outline-primary" id="saveDraft">Save draft</button>
+    <button class="btn btn-success" id="saveIssue">Save &amp; issue</button>
+  </div>
+</div>
+
+<!-- inline "Create new item" -->
+<div class="modal fade" id="itemModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">Create new product</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body">
+    <div id="itemDup" class="alert alert-warning d-none small"></div>
+    <div id="itemErr" class="alert alert-danger d-none small"></div>
+    <div class="row g-2">
+      <div class="col-12 col-md-3"><label class="form-label">Type</label><select class="form-select" id="niType"><option>PRODUCT</option><option>SERVICE</option></select></div>
+      <div class="col-12 col-md-9"><label class="form-label required">Name</label><input class="form-control" id="niName"></div>
+      <div class="col-12 col-md-6"><label class="form-label">Barcode (optional)</label><input class="form-control" id="niBarcode" autocomplete="off"></div>
+      <div class="col-12 col-md-6"><label class="form-label">Serial no. (optional)</label><input class="form-control" id="niSerial" autocomplete="off"></div>
+      <div class="col-12"><label class="form-label">Description</label><input class="form-control" id="niDesc"></div>
+      <div class="col-4"><label class="form-label required">Unit</label><input class="form-control" id="niUnit" value="pcs"></div>
+      <div class="col-4"><label class="form-label required">Price</label><input class="form-control" id="niPrice" inputmode="decimal" value="0"></div>
+      <div class="col-4"><label class="form-label">Tax %</label><input class="form-control" id="niTax" inputmode="decimal"></div>
+    </div></div>
+  <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-success" id="niSave">Save &amp; add to invoice</button></div>
+</div></div></div>
+
+<!-- warranty details for ONE line (opens when its Warranty box is ticked) -->
+<div class="modal fade" id="warModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content">
+  <div class="modal-header"><h5 class="modal-title">Warranty for this item</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+  <div class="modal-body"><div class="row g-2">
+    <div class="col-6"><label class="form-label required">Duration</label><input type="number" min="1" class="form-control" id="wmDur" inputmode="numeric"></div>
+    <div class="col-6"><label class="form-label">Period</label><select class="form-select" id="wmUnit"><option value="DAYS">Days</option><option value="MONTHS" selected>Months</option><option value="YEARS">Years</option></select></div>
+    <div class="col-12"><label class="form-label">Terms (optional)</label><input class="form-control" id="wmTerms" placeholder="e.g. Manufacturing defects only"></div>
+    <div class="col-12 small text-muted">Starts on the delivery date (or invoice date if no delivery date) and is printed on the invoice.</div>
+    <div class="col-12 small text-danger d-none" id="wmErr">Enter the warranty duration.</div>
+  </div></div>
+  <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button class="btn btn-primary" id="wmSave">Save warranty</button></div>
+</div></div></div>
+
+<script th:inline="javascript">
+  window.INITIAL = JSON.parse(/*[[${initialJson}]]*/ '{}');
+  window.SETTINGS = JSON.parse(/*[[${settingsJson}]]*/ '{}');
+</script>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+<script th:src="@{/js/invoice-grid.js}"></script>
+</body>
+</html>

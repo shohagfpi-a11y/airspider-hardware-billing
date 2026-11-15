@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head(${t.title()})}"></head>
+<body>
+<div th:replace="~{fragments :: nav('reports')}"></div>
+<main class="page">
+  <div class="crumb"><a class="back-btn" th:href="@{/reports}"><svg th:replace="~{fragments :: icon('arrow-left')}"></svg>Back to Reports</a><span class="crumb-path"><a th:href="@{/reports}">Reports</a> / <span th:text="${t.title()}"></span></span></div>
+  <div class="page-head">
+    <div><h1 th:text="${t.title()}"></h1><p th:text="${t.note()}"></p></div>
+    <div class="actions d-print-none">
+      <a class="btn btn-light" th:href="${'/reports/' + t.key() + '/print' + qs}" target="_blank"><svg th:replace="~{fragments :: icon('eye')}"></svg>A4 preview</a>
+      <a class="btn btn-light" th:href="${'/reports/' + t.key() + '/print' + (qs == '' ? '?' : qs + '&') + 'autoprint=1'}" target="_blank"><svg th:replace="~{fragments :: icon('printer')}"></svg>Print</a>
+      <a class="btn btn-light" th:href="${'/reports/' + t.key() + '.pdf' + qs}"><svg th:replace="~{fragments :: icon('download')}"></svg>PDF</a>
+      <a class="btn btn-light" th:href="${'/reports/' + t.key() + '.csv' + qs}"><svg th:replace="~{fragments :: icon('file')}"></svg>CSV</a>
+    </div>
+  </div>
+  <form class="card filter-bar mb-3 d-print-none" method="get" th:if="${t.key()!='credits'}">
+    <div class="f" th:if="${t.key()=='invoices' or t.key()=='receipts'}"><label class="form-label">From</label><input type="date" class="form-control" name="from" th:value="${f.from}"></div>
+    <div class="f" th:if="${t.key()=='invoices' or t.key()=='receipts'}"><label class="form-label">To</label><input type="date" class="form-control" name="to" th:value="${f.to}"></div>
+    <div class="f grow"><label class="form-label">Customer</label>
+      <select class="form-select" name="customerId"><option value="">All customers</option><option th:each="c : ${customers}" th:value="${c.id}" th:text="${c.name}" th:selected="${f.customerId == c.id}"></option></select></div>
+    <th:block th:if="${t.key()=='invoices'}">
+      <div class="f"><label class="form-label">Document</label><select class="form-select" name="status"><option value="">Any</option>
+        <option th:each="s : ${statuses}" th:value="${s}" th:text="${#strings.capitalize(#strings.toLowerCase(s.name()))}" th:selected="${f.status == s}"></option></select></div>
+      <div class="f"><label class="form-label">Payment</label><select class="form-select" name="paymentStatus"><option value="">Any</option>
+        <option th:each="s : ${payStatuses}" th:value="${s}" th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(s.name(),'_',' ')))}" th:selected="${f.paymentStatus == s}"></option></select></div>
+      <div class="f"><label class="form-label">Search</label><input class="form-control" name="q" th:value="${f.q}" placeholder="No., customer, LPO"></div>
+      <div class="form-check"><input type="checkbox" class="form-check-input" id="ov" name="overdue" value="true" th:checked="${f.overdue}"><label class="form-check-label" for="ov">Overdue only</label></div>
+    </th:block>
+    <button class="btn btn-outline-secondary">Apply</button>
+  </form>
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-xl-3" th:each="st : ${t.summary()}"><div class="card metric"><span class="label" th:text="${st.label()}"></span><div class="value" th:text="${st.value()}"></div></div></div>
+  </div>
+  <div class="card">
+    <div class="table-wrap"><table class="table table-modern">
+      <thead><tr><th th:each="h, s : ${t.headers()}" th:classappend="${t.numeric().contains(s.index)} ? 'num'" th:text="${h}"></th></tr></thead>
+      <tbody><tr th:each="r : ${t.rows()}"><td th:each="c, s : ${r}" th:classappend="${t.numeric().contains(s.index)} ? 'num'">
+        <a class="strong" th:if="${c.href()}" th:href="@{${c.href()}}" th:text="${c.text()}"></a><span th:unless="${c.href()}" th:text="${c.text()}"></span></td></tr></tbody>
+      <tfoot th:if="${t.totals() != null and !#lists.isEmpty(t.rows())}"><tr><td th:each="x, s : ${t.totals()}" th:classappend="${t.numeric().contains(s.index)} ? 'num'" th:text="${x}"></td></tr></tfoot>
+    </table></div>
+    <div class="empty" th:if="${#lists.isEmpty(t.rows())}"><svg th:replace="~{fragments :: icon('chart')}"></svg><div>No records match.</div></div>
+  </div>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

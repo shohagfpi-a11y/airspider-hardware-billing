@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title th:text="${t.title()} + ' - ' + ${co.name()}">Report</title>
+  <style th:utext="${docCss}"></style>
+  <style th:if="${landscape}">@page { size: A4 landscape; }</style>
+  <style th:utext="'@page { @bottom-left { content: &quot;' + ${footer} + '&quot;; font-size: 7.5pt; color: #64748b; } }'"></style>
+</head>
+<body>
+<div class="toolbar" th:if="${screen}">
+  <button class="primary" onclick="window.print()">Print</button>
+  <script>if (/[?&]autoprint=1/.test(location.search)) window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 350); });</script>
+  <a th:href="${'/reports/' + t.key() + '.pdf' + qs}">Download PDF</a>
+  <a th:href="${'/reports/' + t.key() + qs}">Back</a>
+</div>
+<div class="sheet" th:classappend="${landscape} ? 'sheet-landscape'">
+
+<th:block th:replace="~{doc-parts :: reportHeader(${co}, ${logo}, ${t.title()}, ${'Generated ' + generated}, ${'Prepared by ' + user})}"></th:block>
+
+<div class="rmeta"><span th:each="x, s : ${filters}"><span th:text="${x}"></span><span th:unless="${s.last}">&#160;&#160;&#183;&#160;&#160;</span></span></div>
+
+<table class="rsum"><tr>
+  <td th:each="st : ${t.summary()}"><div class="k" th:text="${st.label()}"></div><div class="v" th:text="${st.value()}"></div></td>
+</tr></table>
+
+<table class="rtable">
+  <thead><tr><th th:each="h, s : ${t.headers()}" th:classappend="${t.numeric().contains(s.index)} ? 'r'" th:text="${h}"></th></tr></thead>
+  <tbody>
+    <tr th:each="r, it : ${t.rows()}" th:classappend="${it.even} ? 'alt'">
+      <td th:each="c, s : ${r}" th:classappend="${t.numeric().contains(s.index)} ? 'r nowrap'" th:text="${c.text()}"></td>
+    </tr>
+    <tr class="tot-row" th:if="${t.totals() != null and !#lists.isEmpty(t.rows())}">
+      <td th:each="x, s : ${t.totals()}" th:classappend="${t.numeric().contains(s.index)} ? 'r nowrap'" th:text="${x}"></td>
+    </tr>
+    <tr th:if="${#lists.isEmpty(t.rows())}"><td th:attr="colspan=${#lists.size(t.headers())}" class="center muted" style="padding:8mm">No records for these filters.</td></tr>
+  </tbody>
+</table>
+
+<div class="rnote" th:text="${t.note()}"></div>
+<div class="rnote">Shows invoiced value and money received only. Not a profit report: purchase costs and stock are not tracked.</div>
+</div>
+</body>
+</html>

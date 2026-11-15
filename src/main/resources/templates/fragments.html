@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1324">
+  <meta name="_csrf" th:content="${_csrf?.token}">
+  <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+  <title th:text="${title} + ' - ' + ${companyName}">Hardware Billing</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<!-- ============================================================ icons (stroke SVG, inherit currentColor) -->
+<svg th:fragment="icon(name)" class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <th:block th:switch="${name}">
+    <th:block th:case="'dashboard'"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></th:block>
+    <th:block th:case="'invoice'"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></th:block>
+    <th:block th:case="'payment'"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></th:block>
+    <th:block th:case="'customers'"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></th:block>
+    <th:block th:case="'box'"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></th:block>
+    <th:block th:case="'chart'"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></th:block>
+    <th:block th:case="'settings'"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></th:block>
+    <th:block th:case="'bank'"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></th:block>
+    <th:block th:case="'shield'"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></th:block>
+    <th:block th:case="'activity'"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></th:block>
+    <th:block th:case="'search'"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></th:block>
+    <th:block th:case="'plus'"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></th:block>
+    <th:block th:case="'menu'"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></th:block>
+    <th:block th:case="'logout'"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></th:block>
+    <th:block th:case="'trend'"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></th:block>
+    <th:block th:case="'alert'"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></th:block>
+    <th:block th:case="'clock'"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></th:block>
+    <th:block th:case="'wallet'"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4z"/></th:block>
+    <th:block th:case="'download'"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></th:block>
+    <th:block th:case="'printer'"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></th:block>
+    <th:block th:case="'edit'"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></th:block>
+    <th:block th:case="'check'"><polyline points="20 6 9 17 4 12"/></th:block>
+    <th:block th:case="'arrow-left'"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></th:block>
+    <th:block th:case="'eye'"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></th:block>
+    <th:block th:case="'file'"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></th:block>
+    <th:block th:case="*"><circle cx="12" cy="12" r="9"/></th:block>
+  </th:block>
+</svg>
+
+<!-- ============================================================ navigation -->
+<div th:fragment="nav(active)" class="d-print-none">
+  <!-- phone / tablet top bar -->
+  <header class="topbar d-lg-none">
+    <button class="menu-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar" aria-label="Open menu">
+      <svg th:replace="~{fragments :: icon('menu')}"></svg></button>
+    <a class="topbar-title" th:href="@{/}" th:title="${companyName}">
+      <span class="topbar-logo" th:if="${brandLogo}"><img th:src="@{/brand/logo}" th:alt="${companyName}"></span>
+      <span th:unless="${brandLogo}" th:text="${companyName}">Company</span>
+    </a>
+    <a class="btn btn-sm btn-primary" th:if="${me.canWrite()}" th:href="@{/invoices/new}"><svg th:replace="~{fragments :: icon('plus')}"></svg>Invoice</a>
+  </header>
+  <!-- left menu: fixed on desktop, slide-in drawer on phones -->
+  <aside class="sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebar" aria-label="Main menu">
+    <div class="offcanvas-header d-lg-none">
+      <span class="fw-semibold text-white">Menu</span>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" data-bs-target="#sidebar" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column p-0">
+      <a class="sidebar-brand" th:href="@{/}" th:title="${companyName}">
+        <span class="brand-logo" th:if="${brandLogo}"><img th:src="@{/brand/logo}" th:alt="${companyName}"></span>
+        <th:block th:unless="${brandLogo}">
+          <span class="brand-mark" th:text="${#strings.toUpperCase(#strings.substring(companyName,0,1))}">H</span>
+          <span><span class="brand-name d-block" th:text="${companyName}">Company</span><span class="brand-sub">Billing &amp; payments</span></span>
+        </th:block>
+      </a>
+      <div class="side-new" th:if="${me.canWrite()}">
+        <a class="btn btn-primary w-100" th:href="@{/invoices/new}"><svg th:replace="~{fragments :: icon('plus')}"></svg>New invoice</a>
+      </div>
+      <form class="side-search-wrap" th:action="@{/invoices/lookup}" method="get" role="search">
+        <svg th:replace="~{fragments :: icon('search')}"></svg>
+        <input class="form-control side-search" name="number" placeholder="Scan or type invoice no." autocomplete="off" aria-label="Find invoice by number">
+      </form>
+      <nav class="side-nav flex-grow-1">
+        <div class="side-heading">Sales</div>
+        <a th:classappend="${active=='dashboard'} ? 'active'" th:href="@{/}"><svg th:replace="~{fragments :: icon('dashboard')}"></svg>Dashboard</a>
+        <a th:classappend="${active=='invoices'} ? 'active'" th:href="@{/invoices}"><svg th:replace="~{fragments :: icon('invoice')}"></svg>Invoices</a>
+        <a th:classappend="${active=='payments'} ? 'active'" th:href="@{/payments}"><svg th:replace="~{fragments :: icon('payment')}"></svg>Payments</a>
+        <a th:classappend="${active=='customers'} ? 'active'" th:href="@{/customers}"><svg th:replace="~{fragments :: icon('customers')}"></svg>Customers</a>
+        <a th:classappend="${active=='items'} ? 'active'" th:href="@{/items}"><svg th:replace="~{fragments :: icon('box')}"></svg>Products</a>
+        <a th:classappend="${active=='reports'} ? 'active'" th:href="@{/reports}"><svg th:replace="~{fragments :: icon('chart')}"></svg>Reports</a>
+        <th:block th:if="${me.admin()}">
+          <div class="side-heading">Administration</div>
+          <a th:classappend="${active=='settings'} ? 'active'" th:href="@{/settings}"><svg th:replace="~{fragments :: icon('settings')}"></svg>Company settings</a>
+          <a th:classappend="${active=='banks'} ? 'active'" th:href="@{/banks}"><svg th:replace="~{fragments :: icon('bank')}"></svg>Bank accounts</a>
+          <a th:classappend="${active=='users'} ? 'active'" th:href="@{/users}"><svg th:replace="~{fragments :: icon('shield')}"></svg>Users &amp; roles</a>
+          <a th:classappend="${active=='audit'} ? 'active'" th:href="@{/audit}"><svg th:replace="~{fragments :: icon('activity')}"></svg>Audit log</a>
+        </th:block>
+      </nav>
+      <div class="side-user">
+        <span class="avatar" th:text="${#strings.substring(me.username(),0,1)}">A</span>
+        <span class="who"><b th:text="${me.username()}">user</b><a th:href="@{/account/password}">Change password</a></span>
+        <form th:action="@{/logout}" method="post"><button class="logout" title="Sign out" aria-label="Sign out"><svg th:replace="~{fragments :: icon('logout')}"></svg></button></form>
+      </div>
+      <div class="side-version" th:text="${'Version ' + appVersion}">Version 0.0.1</div>
+    </div>
+  </aside>
+</div>
+
+<div th:fragment="flash" class="d-print-none">
+  <div class="alert alert-success alert-dismissible d-flex align-items-center gap-2" th:if="${success}"><svg th:replace="~{fragments :: icon('check')}"></svg><span th:text="${success}"></span><button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+  <div class="alert alert-danger d-flex align-items-center gap-2" th:if="${error}"><svg th:replace="~{fragments :: icon('alert')}"></svg><span th:text="${error}"></span></div>
+</div>
+
+<th:block th:fragment="scripts">
+  <script th:src="@{/webjars/bootstrap/5.3.8/js/bootstrap.bundle.min.js}"></script>
+</th:block>
+
+<!-- document / payment status pills -->
+<span th:fragment="docBadge(status)" class="badge"
+      th:classappend="${status=='ISSUED'} ? 'text-bg-primary' : (${status=='VOIDED'} ? 'text-bg-danger' : 'text-bg-secondary')"
+      th:text="${status=='ISSUED'} ? 'Issued' : (${status=='VOIDED'} ? 'Voided' : 'Draft')">Issued</span>
+<span th:fragment="payBadge(status)" class="badge"
+      th:classappend="${status=='PAID'} ? 'text-bg-success' : (${status=='PARTIALLY_PAID'} ? 'text-bg-warning' : 'text-bg-light')"
+      th:text="${status=='PAID'} ? 'Paid' : (${status=='PARTIALLY_PAID'} ? 'Partly paid' : 'Unpaid')">Unpaid</span>
+</body>
+</html>

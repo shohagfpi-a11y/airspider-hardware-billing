@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Payments')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('payments')}"></div>
+<main class="page">
+  <div class="page-head">
+    <div><h1>Payments</h1><p>Money received, how it was applied, and credit still available</p></div>
+    <div class="actions"><a class="btn btn-success" th:if="${me.canWrite()}" th:href="@{/payments/new}"><svg th:replace="~{fragments :: icon('plus')}"></svg>Record payment</a></div>
+  </div>
+  <div th:replace="~{fragments :: flash}"></div>
+
+  <form class="card filter-bar mb-3" method="get">
+    <div class="f grow"><label class="form-label">Customer</label><select class="form-select" name="customerId"><option value="">All customers</option>
+      <option th:each="c : ${customers}" th:value="${c.id}" th:text="${c.name}" th:selected="${param.customerId != null and param.customerId[0] == '' + c.id}"></option></select></div>
+    <div class="f"><label class="form-label">From</label><input type="date" class="form-control" name="from" th:value="${param.from}"></div>
+    <div class="f"><label class="form-label">To</label><input type="date" class="form-control" name="to" th:value="${param.to}"></div>
+    <button class="btn btn-outline-secondary">Filter</button>
+  </form>
+
+  <div class="card">
+    <div class="table-wrap"><table class="table table-modern">
+      <thead><tr><th>Receipt</th><th>Customer</th><th class="d-none d-xl-table-cell">Method</th><th class="num">Amount</th><th class="num d-none d-xxl-table-cell">Applied</th><th class="num d-none d-xxl-table-cell">Refunded</th><th class="num">Credit left</th><th>Status</th><th class="text-end">Receipt</th></tr></thead>
+      <tbody><tr th:each="r : ${rows}">
+        <td><a class="strong" th:href="@{/payments/{id}(id=${r.id()})}" th:text="${r.receiptNo()}"></a><div class="cell-sub" th:text="${@fmt.date(r.date())}"></div></td>
+        <td th:text="${r.customer()}"></td>
+        <td class="d-none d-xl-table-cell"><span th:text="${#strings.capitalize(#strings.toLowerCase(#strings.replace(r.method(),'_',' ')))}"></span><div class="cell-sub" th:if="${r.reference()}" th:text="${'Ref ' + r.reference()}"></div></td>
+        <td class="num fw-semibold" th:text="${@fmt.money(r.amount())}"></td>
+        <td class="num muted d-none d-xxl-table-cell" th:text="${@fmt.money(r.allocated())}"></td>
+        <td class="num muted d-none d-xxl-table-cell" th:text="${@fmt.money(r.refunded())}"></td>
+        <td class="num" th:classappend="${r.available().signum() > 0} ? 'text-cyan fw-semibold'" th:text="${@fmt.money(r.available())}"></td>
+        <td><span class="badge" th:classappend="${r.status()=='ACTIVE'} ? 'text-bg-success' : 'text-bg-danger'" th:text="${r.status()=='ACTIVE'} ? 'Active' : 'Reversed'"></span></td>
+        <td class="text-end text-nowrap"><div class="row-actions">
+          <a class="btn btn-sm btn-light" th:href="@{/payments/{id}/receipt(id=${r.id()})}" target="_blank" title="Preview"><svg th:replace="~{fragments :: icon('eye')}"></svg><span class="lbl">Preview</span></a>
+          <a class="btn btn-sm btn-light" th:href="@{/payments/{id}/receipt(id=${r.id()})(autoprint=1)}" target="_blank" title="Print"><svg th:replace="~{fragments :: icon('printer')}"></svg><span class="lbl">Print</span></a>
+          <a class="btn btn-sm btn-light" th:href="@{/payments/{id}/receipt.pdf(id=${r.id()})}" title="Download PDF"><svg th:replace="~{fragments :: icon('download')}"></svg><span class="lbl">PDF</span></a></div></td></tr></tbody></table></div>
+    <div class="empty" th:if="${#lists.isEmpty(rows)}"><svg th:replace="~{fragments :: icon('payment')}"></svg><div>No payments found.</div></div>
+  </div>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

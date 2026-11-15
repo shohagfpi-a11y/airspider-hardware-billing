@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!-- Shared A4 report header: company name, then address, then the report title band -->
+<th:block th:fragment="reportHeader(co, logo, title, right1, right2)">
+  <table class="rh"><tr>
+    <td class="logo-cell" th:if="${logo}"><img th:src="${logo}" alt=""/></td>
+    <td>
+      <div class="co-name" th:text="${co.legalName()}">Company</div>
+      <div class="co-addr">
+        <span th:text="${co.address()}"></span><span th:if="${co.address() != null and co.city() != null}">, </span><span th:text="${co.city()}"></span><span th:if="${co.country() != null}">, </span><span th:text="${co.country()}"></span>
+      </div>
+      <div class="co-addr">
+        <span th:if="${co.taxNumber()}">TRN <b th:text="${co.taxNumber()}"></b>&#160;&#160;</span>
+        <span th:if="${co.phone()}">Tel <span th:text="${co.phone()}"></span>&#160;&#160;</span>
+        <span th:if="${co.mobile()}">Mobile <span th:text="${co.mobile()}"></span>&#160;&#160;</span>
+        <span th:if="${co.email()}" th:text="${co.email()}"></span>
+      </div>
+    </td>
+  </tr></table>
+  <table class="rtitle"><tr>
+    <td class="t" th:text="${title}">REPORT</td>
+    <td class="s"><div th:text="${right1}"></div><div th:text="${right2}"></div></td>
+  </tr></table>
+</th:block>
+</body>
+</html>

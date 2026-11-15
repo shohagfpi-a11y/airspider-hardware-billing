@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Error</title>
+  <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.8/css/bootstrap.min.css}"><link rel="stylesheet" th:href="@{/css/app.css}"></head>
+<body>
+<main class="auth-wrap">
+  <div class="card auth-card text-center">
+    <div class="display-6 fw-bold mb-2" th:text="${status}">500</div>
+    <h1 class="h5 fw-bold" th:text="${status == 403} ? 'You do not have permission' : (${status == 404} ? 'Page not found' : 'Something went wrong')">Error</h1>
+    <p class="muted mb-4" th:text="${status == 403} ? 'Ask an administrator if you need access to this page.' : (${status == 404} ? 'The page may have moved.' : 'The details were logged on the server.')"></p>
+    <a class="btn btn-primary" th:href="@{/}">Back to dashboard</a>
+  </div>
+</main>
+</body>
+</html>

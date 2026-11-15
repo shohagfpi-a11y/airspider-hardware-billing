@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title th:text="'Statement - ' + ${d.customerName()}">Statement</title>
+  <style th:utext="${docCss}"></style>
+</head>
+<body>
+<div class="toolbar" th:if="${screen}">
+  <button class="primary" onclick="window.print()">Print</button>
+  <script>if (/[?&]autoprint=1/.test(location.search)) window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 350); });</script>
+  <a th:href="'/customers/' + ${customerId} + '/statement.pdf?from=' + ${fromIso} + '&amp;to=' + ${toIso}">Download PDF</a>
+  <a th:href="'/customers/' + ${customerId} + '/statement.csv?from=' + ${fromIso} + '&amp;to=' + ${toIso}">CSV</a>
+  <a th:href="'/customers/' + ${customerId}">Back</a>
+</div>
+<div class="sheet">
+<th:block th:replace="~{doc-parts :: reportHeader(${d.company()}, ${d.logo()}, 'Statement of account', ${'Period ' + d.from() + ' to ' + d.to()}, ${'Prepared ' + d.asOf()})}"></th:block>
+
+<table class="info"><tr>
+  <td class="cell"><div class="box"><h4>Customer</h4><div class="bold" th:text="${d.customerName()}"></div>
+    <div class="small muted" th:text="${d.customerCode()}"></div><div class="wrap" th:text="${d.customerAddress()}"></div>
+    <div th:if="${d.customerTrn()}">TRN: <span th:text="${d.customerTrn()}"></span></div></div></td>
+  <td class="gap"></td>
+  <td class="cell"><div class="box"><h4>Current position (<span th:text="${d.currency()}"></span>, as of today)</h4>
+    <table class="kv">
+      <tr><td class="k">Outstanding</td><td class="right bold" th:text="${d.outstanding()}"></td></tr>
+      <tr><td class="k">Available credit</td><td class="right bold" th:text="${d.credit()}"></td></tr>
+      <tr><td class="k">Net position</td><td class="right bold" th:text="${d.netPosition()}"></td></tr>
+    </table></div></td>
+</tr></table>
+
+<table class="plain">
+  <thead><tr><th>Date</th><th>Type</th><th>Reference</th><th>Description</th><th class="r">Debit</th><th class="r">Credit</th><th class="r">Applied*</th><th class="r">Balance</th></tr></thead>
+  <tbody>
+    <tr><td colspan="7" class="bold">Opening balance</td><td class="r bold" th:text="${d.opening()}"></td></tr>
+    <tr th:each="l : ${d.lines()}" th:classappend="${l.type()=='Applied'} ? 'info-row'">
+      <td class="nowrap" th:text="${l.date()}"></td><td th:text="${l.type()}"></td><td class="wrap" th:text="${l.ref()}"></td><td class="wrap" th:text="${l.description()}"></td>
+      <td class="r nowrap" th:text="${l.debit()}"></td><td class="r nowrap" th:text="${l.credit()}"></td><td class="r nowrap" th:text="${l.applied()}"></td>
+      <td class="r nowrap" th:text="${l.type()=='Applied'} ? '' : ${l.balance()}"></td></tr>
+    <tr><td colspan="7" class="bold">Closing balance</td><td class="r bold" th:text="${d.closing()}"></td></tr>
+  </tbody>
+</table>
+<div class="small muted" style="margin-top:3mm">
+  Debit = amounts the customer owes (invoices issued, refunds paid out). Credit = money received. Positive balance = customer owes us; negative = we hold credit.
+  *Applied rows show a receipt being allocated to an invoice: they move money between documents and never change the balance (no double counting).
+</div>
+</div>
+</body>
+</html>

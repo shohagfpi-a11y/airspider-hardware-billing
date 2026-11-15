@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('User')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('users')}"></div>
+<main class="page page-narrow">
+  <div class="crumb"><a class="back-btn" th:href="@{/users}"><svg th:replace="~{fragments :: icon('arrow-left')}"></svg>Back to Users</a><span class="crumb-path"><a th:href="@{/users}">Users</a> / <span th:text="${form.id == null} ? 'New' : ${form.username}"></span></span></div>
+  <div class="page-head"><div><h1 th:text="${form.id == null} ? 'New user' : 'Edit user'"></h1><p>Staff accounts for this company.</p></div></div>
+  <div th:replace="~{fragments :: flash}"></div>
+  <form th:action="@{/users}" th:object="${form}" method="post" class="card">
+    <input type="hidden" th:field="*{id}">
+    <div class="form-section">
+      <div class="row g-3">
+        <div class="col-12 col-md-6"><label class="form-label required">Username</label><input class="form-control" th:field="*{username}" th:readonly="${form.id != null}" autocomplete="off" th:classappend="${#fields.hasErrors('username')} ? 'is-invalid'"><div class="invalid-feedback" th:errors="*{username}"></div></div>
+        <div class="col-12 col-md-6"><label class="form-label required">Full name</label><input class="form-control" th:field="*{fullName}" th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid'"><div class="invalid-feedback" th:errors="*{fullName}"></div></div>
+        <div class="col-12 col-md-6"><label class="form-label">Role</label><select class="form-select" th:field="*{role}">
+          <option value="ADMIN">Administrator - everything</option><option value="STAFF">Staff - daily invoicing and payments</option><option value="READ_ONLY">Read-only - view only</option></select></div>
+        <div class="col-12 col-md-6"><label class="form-label" th:text="${form.id == null} ? 'Password (min 10 characters)' : 'New password (leave empty to keep)'"></label>
+          <input class="form-control" type="password" th:field="*{password}" autocomplete="new-password"></div>
+        <div class="col-12" th:if="${form.id != null}"><div class="form-check form-switch"><input type="checkbox" class="form-check-input" th:field="*{active}"><label class="form-check-label" for="active">Account active</label></div></div>
+      </div>
+    </div>
+    <div class="form-actions"><a class="btn btn-light" th:href="@{/users}">Cancel</a><button class="btn btn-primary"><svg th:replace="~{fragments :: icon('check')}"></svg>Save user</button></div>
+  </form>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

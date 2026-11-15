@@ -1,0 +1,9 @@
+# Bootstrap configuration used only while the first certificate is being issued.
+server {
+    listen 80;
+    server_name __DOMAIN__;
+
+    location /.well-known/acme-challenge/ { root /var/www/certbot; }
+    location = /healthz { access_log off; return 200 "ok\n"; }
+    location / { return 200 "Certificate is being issued. Please retry shortly.\n"; }
+}

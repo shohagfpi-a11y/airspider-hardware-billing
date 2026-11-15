@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Customers')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('customers')}"></div>
+<main class="page">
+  <div class="page-head">
+    <div><h1>Customers</h1><p>What each customer owes and the advance credit you hold for them</p></div>
+    <div class="actions"><a class="btn btn-primary" th:if="${me.canWrite()}" th:href="@{/customers/new}"><svg th:replace="~{fragments :: icon('plus')}"></svg>New customer</a></div>
+  </div>
+  <div th:replace="~{fragments :: flash}"></div>
+
+  <form class="card filter-bar mb-3" method="get">
+    <div class="f grow"><label class="form-label">Search</label>
+      <div class="search-box"><svg th:replace="~{fragments :: icon('search')}"></svg><input class="form-control" name="q" th:value="${q}" placeholder="Name, code, mobile or TRN"></div></div>
+    <button class="btn btn-outline-secondary">Search</button>
+  </form>
+
+  <div class="card">
+    <div class="table-wrap"><table class="table table-modern">
+      <thead><tr><th>Customer</th><th class="d-none d-md-table-cell">Contact</th><th class="d-none d-lg-table-cell">TRN</th><th class="num">Outstanding</th><th class="num">Credit</th><th></th></tr></thead>
+      <tbody><tr th:each="c : ${customers}">
+        <td><div class="who-cell"><span class="avatar" th:text="${#strings.substring(c.name,0,1)}">A</span>
+          <div><a class="strong" th:href="@{/customers/{id}(id=${c.id})}" th:text="${c.name}"></a>
+            <div class="cell-sub"><span class="mono" th:text="${c.code}"></span> <span class="badge text-bg-secondary" th:unless="${c.active}">Inactive</span></div></div></div></td>
+        <td class="d-none d-md-table-cell"><span th:text="${c.contactPerson}"></span><div class="cell-sub" th:text="${c.mobile}"></div></td>
+        <td class="mono d-none d-lg-table-cell" th:text="${c.taxNumber}"></td>
+        <td class="num fw-semibold" th:text="${@fmt.money(positions[c.id]?.outstanding())}"></td>
+        <td class="num text-cyan" th:text="${@fmt.money(positions[c.id]?.credit())}"></td>
+        <td class="text-end text-nowrap"><div class="row-actions">
+          <a class="btn btn-sm btn-light" th:href="@{/customers/{id}/statement(id=${c.id})}" target="_blank" title="Statement preview"><svg th:replace="~{fragments :: icon('file')}"></svg><span class="lbl">Statement</span></a>
+          <a class="btn btn-sm btn-light" th:href="@{/customers/{id}/statement(id=${c.id},autoprint=1)}" target="_blank" title="Print statement"><svg th:replace="~{fragments :: icon('printer')}"></svg><span class="lbl">Print</span></a>
+          <a class="btn btn-sm btn-outline-secondary" th:if="${me.canWrite()}" th:href="@{/customers/{id}/edit(id=${c.id})}"><svg th:replace="~{fragments :: icon('edit')}"></svg><span class="lbl">Edit</span></a></div></td>
+      </tr></tbody></table></div>
+    <div class="empty" th:if="${#lists.isEmpty(customers)}"><svg th:replace="~{fragments :: icon('customers')}"></svg><div>No customers yet.</div></div>
+  </div>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

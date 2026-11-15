@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Dashboard')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('dashboard')}"></div>
+<main class="page">
+  <div class="page-head">
+    <div>
+      <h1>Dashboard</h1>
+      <p>Overview from <b th:text="${@fmt.date(d.from())}"></b> to <b th:text="${@fmt.date(d.to())}"></b> &middot; amounts in <span th:text="${@fmt.currency()}">AED</span></p>
+    </div>
+    <div class="actions" th:if="${me.canWrite()}">
+      <a class="btn btn-light" th:href="@{/payments/new}"><svg th:replace="~{fragments :: icon('wallet')}"></svg>Record payment</a>
+      <a class="btn btn-primary" th:href="@{/invoices/new}"><svg th:replace="~{fragments :: icon('plus')}"></svg>New invoice</a>
+    </div>
+  </div>
+  <div th:replace="~{fragments :: flash}"></div>
+
+  <form class="card filter-bar mb-4" method="get" th:action="@{/}">
+    <div class="f"><label class="form-label">From</label><input type="date" class="form-control" name="from" th:value="${d.from()}"></div>
+    <div class="f"><label class="form-label">To</label><input type="date" class="form-control" name="to" th:value="${d.to()}"></div>
+    <button class="btn btn-outline-secondary">Apply period</button>
+    <span class="hint ms-auto d-none d-md-inline">Invoiced value uses the invoice date; payments use the payment date.</span>
+  </form>
+
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl"><div class="card metric">
+      <div class="top"><span class="label">Invoiced value</span><span class="chip chip-blue"><svg th:replace="~{fragments :: icon('invoice')}"></svg></span></div>
+      <div class="value" th:text="${@fmt.money(d.invoicedValue())}">0.00</div>
+      <div class="basis"><span th:text="${d.invoicedCount()}"></span> issued invoices in this period</div></div></div>
+    <div class="col-12 col-sm-6 col-xl"><div class="card metric">
+      <div class="top"><span class="label">Payments received</span><span class="chip chip-green"><svg th:replace="~{fragments :: icon('trend')}"></svg></span></div>
+      <div class="value text-green" th:text="${@fmt.money(d.received())}">0.00</div>
+      <div class="basis"><span th:text="${d.receivedCount()}"></span> receipts &middot; cash actually received, advances included</div></div></div>
+    <div class="col-12 col-sm-6 col-xl"><div class="card metric">
+      <div class="top"><span class="label">Outstanding</span><span class="chip chip-violet"><svg th:replace="~{fragments :: icon('clock')}"></svg></span></div>
+      <div class="value" th:text="${@fmt.money(d.outstanding())}">0.00</div>
+      <div class="basis">Unpaid balance today, all customers</div></div></div>
+    <div class="col-12 col-sm-6 col-xl"><div class="card metric">
+      <div class="top"><span class="label">Overdue</span><span class="chip chip-red"><svg th:replace="~{fragments :: icon('alert')}"></svg></span></div>
+      <div class="value text-red" th:text="${@fmt.money(d.overdueAmount())}">0.00</div>
+      <div class="basis"><span th:text="${d.overdueCount()}"></span> invoices past their due date</div></div></div>
+    <div class="col-12 col-sm-6 col-xl"><div class="card metric">
+      <div class="top"><span class="label">Customer credit</span><span class="chip chip-cyan"><svg th:replace="~{fragments :: icon('wallet')}"></svg></span></div>
+      <div class="value text-cyan" th:text="${@fmt.money(d.availableCredit())}">0.00</div>
+      <div class="basis">Advance money held, not yet applied or refunded</div></div></div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-xl-7"><div class="card h-100">
+      <div class="card-head"><h2>Recent invoices</h2><a class="small" th:href="@{/invoices}">View all &rarr;</a></div>
+      <div class="table-wrap"><table class="table table-modern">
+        <thead><tr><th>Invoice</th><th>Customer</th><th>Status</th><th class="num d-none d-md-table-cell">Total</th><th class="num">Balance</th><th></th></tr></thead>
+        <tbody><tr th:each="r : ${d.recentInvoices()}">
+          <td><a class="strong" th:href="@{/invoices/{id}(id=${r.id()})}" th:text="${r.number() ?: 'Draft #' + r.id()}"></a><div class="cell-sub" th:text="${@fmt.date(r.date())}"></div></td>
+          <td th:text="${r.customer()}"></td>
+          <td><span th:replace="~{fragments :: docBadge(${r.status().name()})}"></span>
+              <span th:if="${r.overdue()}" class="badge text-bg-danger">Overdue</span></td>
+          <td class="num d-none d-md-table-cell" th:text="${@fmt.money(r.total())}"></td>
+          <td class="num fw-semibold" th:text="${@fmt.money(r.balance())}"></td>
+          <td class="text-end text-nowrap"><div class="row-actions">
+            <a class="btn btn-sm btn-light" th:href="@{/invoices/{id}/print(id=${r.id()})}" target="_blank" title="Preview"><svg th:replace="~{fragments :: icon('eye')}"></svg></a>
+            <a class="btn btn-sm btn-light" th:href="@{/invoices/{id}/print(id=${r.id()},autoprint=1)}" target="_blank" title="Print"><svg th:replace="~{fragments :: icon('printer')}"></svg></a></div></td></tr></tbody></table></div>
+      <div class="empty" th:if="${#lists.isEmpty(d.recentInvoices())}"><svg th:replace="~{fragments :: icon('invoice')}"></svg><div>No invoices yet.</div></div>
+    </div></div>
+    <div class="col-12 col-xl-5"><div class="card h-100">
+      <div class="card-head"><h2>Recent payments</h2><a class="small" th:href="@{/payments}">View all &rarr;</a></div>
+      <div class="table-wrap"><table class="table table-modern">
+        <thead><tr><th>Receipt</th><th>Customer</th><th class="num">Amount</th><th></th></tr></thead>
+        <tbody><tr th:each="r : ${d.recentReceipts()}">
+          <td><a class="strong" th:href="@{/payments/{id}(id=${r.id()})}" th:text="${r.receiptNo()}"></a><div class="cell-sub" th:text="${@fmt.date(r.date())}"></div></td>
+          <td th:text="${r.customer()}"></td>
+          <td class="num fw-semibold text-green" th:text="${@fmt.money(r.amount())}"></td>
+          <td class="text-end text-nowrap"><div class="row-actions">
+            <a class="btn btn-sm btn-light" th:href="@{/payments/{id}/receipt(id=${r.id()})}" target="_blank" title="Preview receipt"><svg th:replace="~{fragments :: icon('eye')}"></svg></a>
+            <a class="btn btn-sm btn-light" th:href="@{/payments/{id}/receipt(id=${r.id()},autoprint=1)}" target="_blank" title="Print receipt"><svg th:replace="~{fragments :: icon('printer')}"></svg></a></div></td></tr></tbody></table></div>
+      <div class="empty" th:if="${#lists.isEmpty(d.recentReceipts())}"><svg th:replace="~{fragments :: icon('payment')}"></svg><div>No payments yet.</div></div>
+    </div></div>
+  </div>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

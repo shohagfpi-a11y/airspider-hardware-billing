@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Bank accounts')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('banks')}"></div>
+<main class="page">
+  <div class="page-head">
+    <div><h1>Bank accounts</h1><p>Printed on invoices paid by bank, and used to record where money was received. No automatic bank connection.</p></div>
+    <div class="actions"><a class="btn btn-primary" th:href="@{/banks/new}"><svg th:replace="~{fragments :: icon('plus')}"></svg>New bank account</a></div>
+  </div>
+  <div th:replace="~{fragments :: flash}"></div>
+  <div class="card">
+    <div class="table-wrap"><table class="table table-modern">
+      <thead><tr><th>Bank</th><th>Account holder</th><th>Account no.</th><th>IBAN</th><th>Currency</th><th>Status</th><th></th></tr></thead>
+      <tbody><tr th:each="b : ${banks}">
+        <td><div class="who-cell"><span class="chip chip-blue"><svg th:replace="~{fragments :: icon('bank')}"></svg></span><div><div class="cell-title" th:text="${b.bankName}"></div><div class="cell-sub" th:text="${b.branch}"></div></div></div></td>
+        <td th:text="${b.accountHolder}"></td><td class="mono" th:text="${b.accountNumber}"></td>
+        <td><span class="mono" th:text="${b.iban}"></span><div class="cell-sub mono" th:text="${b.swift}"></div></td><td th:text="${b.currency}"></td>
+        <td><span class="badge text-bg-success" th:if="${b.active}">Active</span><span class="badge text-bg-secondary" th:unless="${b.active}">Inactive</span>
+            <span class="badge text-bg-primary" th:if="${b.defaultAccount}">Default</span></td>
+        <td class="text-end"><a class="btn btn-sm btn-outline-secondary" th:href="@{/banks/{id}/edit(id=${b.id})}"><svg th:replace="~{fragments :: icon('edit')}"></svg>Edit</a></td></tr></tbody></table></div>
+    <div class="empty" th:if="${#lists.isEmpty(banks)}"><svg th:replace="~{fragments :: icon('bank')}"></svg><div>No bank accounts yet.</div></div>
+  </div>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Users')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('users')}"></div>
+<main class="page">
+  <div class="page-head">
+    <div><h1>Users &amp; roles</h1><p>Administrator: everything. Staff: daily work, no voids, reversals, refunds or settings. Read-only: view only.</p></div>
+    <div class="actions"><a class="btn btn-primary" th:href="@{/users/new}"><svg th:replace="~{fragments :: icon('plus')}"></svg>New user</a></div>
+  </div>
+  <div th:replace="~{fragments :: flash}"></div>
+  <div class="card">
+    <div class="table-wrap"><table class="table table-modern">
+      <thead><tr><th>User</th><th>Role</th><th>Status</th><th></th></tr></thead>
+      <tbody><tr th:each="u : ${users}">
+        <td><div class="who-cell"><span class="avatar" th:text="${#strings.substring(u.username,0,1)}">A</span><div><div class="cell-title" th:text="${u.fullName}"></div><div class="cell-sub" th:text="${u.username}"></div></div></div></td>
+        <td><span class="badge" th:classappend="${u.role.name()=='ADMIN'} ? 'text-bg-primary' : (${u.role.name()=='STAFF'} ? 'text-bg-info' : 'text-bg-secondary')"
+                  th:text="${u.role.name()=='ADMIN'} ? 'Administrator' : (${u.role.name()=='STAFF'} ? 'Staff' : 'Read-only')"></span></td>
+        <td><span class="badge text-bg-success" th:if="${u.active}">Active</span><span class="badge text-bg-secondary" th:unless="${u.active}">Disabled</span></td>
+        <td class="text-end"><a class="btn btn-sm btn-outline-secondary" th:href="@{/users/{id}/edit(id=${u.id})}"><svg th:replace="~{fragments :: icon('edit')}"></svg>Edit</a></td></tr></tbody></table></div>
+  </div>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

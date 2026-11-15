@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Receipt')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('payments')}"></div>
+<main class="page">
+  <div class="crumb"><a class="back-btn" th:href="@{/payments}"><svg th:replace="~{fragments :: icon('arrow-left')}"></svg>Back to Payments</a><span class="crumb-path"><a th:href="@{/payments}">Payments</a> / <span th:text="${p.receiptNo}"></span></span></div>
+  <div class="page-head">
+    <div><h1><span th:text="${p.receiptNo}"></span>
+        <span class="badge align-middle" th:classappend="${p.status.name()=='ACTIVE'} ? 'text-bg-success' : 'text-bg-danger'" th:text="${p.status.name()=='ACTIVE'} ? 'Active' : 'Reversed'"></span></h1>
+      <p><a th:href="@{/customers/{id}(id=${p.customer.id})}" th:text="${p.customer.name}"></a> &middot; <span th:text="${@fmt.date(p.paymentDate)}"></span></p></div>
+    <div class="actions">
+      <a class="btn btn-light" th:href="@{/payments/{id}/receipt(id=${p.id})}" target="_blank"><svg th:replace="~{fragments :: icon('eye')}"></svg>Preview</a>
+      <a class="btn btn-light" th:href="@{/payments/{id}/receipt(id=${p.id},autoprint=1)}" target="_blank"><svg th:replace="~{fragments :: icon('printer')}"></svg>Print receipt</a>
+      <a class="btn btn-light" th:href="@{/payments/{id}/receipt.pdf(id=${p.id})}"><svg th:replace="~{fragments :: icon('download')}"></svg>PDF</a>
+    </div>
+  </div>
+  <div th:replace="~{fragments :: flash}"></div>
+  <div class="alert alert-danger" th:if="${p.status.name()=='REVERSED'}">Reversed by <b th:text="${p.reversedBy}"></b>: <span th:text="${p.reverseReason}"></span></div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-md-4"><div class="card metric">
+      <div class="top"><span class="label">Amount received</span><span class="chip chip-green"><svg th:replace="~{fragments :: icon('trend')}"></svg></span></div>
+      <div class="value" th:text="${@fmt.money(p.amount)}"></div>
+      <div class="basis"><span th:text="${p.method.label}"></span><span th:if="${p.reference}"> &middot; ref <span th:text="${p.reference}"></span></span><span th:if="${p.bankLabel}"> &middot; <span th:text="${p.bankLabel}"></span></span></div></div></div>
+    <div class="col-12 col-md-4"><div class="card metric">
+      <div class="top"><span class="label">Credit still available</span><span class="chip chip-cyan"><svg th:replace="~{fragments :: icon('wallet')}"></svg></span></div>
+      <div class="value text-cyan" th:text="${@fmt.money(available)}"></div><div class="basis">Amount minus applied and refunded</div></div></div>
+    <div class="col-12 col-md-4" th:if="${p.notes}"><div class="card card-pad h-100"><div class="label muted small fw-semibold mb-1">Notes</div><div th:text="${p.notes}"></div></div></div>
+  </div>
+
+  <div class="card mb-3">
+    <div class="card-head"><h2>Applied to invoices</h2></div>
+    <div class="table-wrap"><table class="table table-modern">
+      <thead><tr><th>Invoice</th><th class="num">Amount</th><th>Status</th><th></th></tr></thead>
+      <tbody><tr th:each="a : ${allocs}">
+        <td><a class="strong" th:href="@{/invoices/{id}(id=${a.paymentId()})}" th:text="${a.receiptNo()}"></a><div class="cell-sub" th:text="${@fmt.date(a.date())}"></div></td>
+        <td class="num fw-semibold" th:text="${@fmt.money(a.amount())}"></td>
+        <td><span th:if="${a.status()=='ACTIVE'}" class="badge text-bg-success">Active</span><span th:if="${a.status()=='REVERSED'}" class="badge text-bg-danger" th:title="${a.reason()}">Reversed</span></td>
+        <td class="text-end"><form th:if="${me.admin() and a.status()=='ACTIVE'}" th:action="@{/allocations/{id}/reverse(id=${a.id()})}" method="post" class="d-inline-flex gap-1"
+              onsubmit="return confirm('Reverse this allocation? The invoice balance will increase again.');">
+            <input type="hidden" name="returnTo" th:value="${p.id}"><input type="hidden" name="area" value="payments">
+            <input class="form-control form-control-sm" name="reason" placeholder="Reason" required style="min-height:32px"><button class="btn btn-sm btn-outline-danger">Reverse</button></form></td></tr></tbody></table></div>
+    <div class="empty" th:if="${#lists.isEmpty(allocs)}">Not applied to any invoice yet: the full amount is customer credit.</div>
+  </div>
+
+  <div class="row g-3" th:if="${p.status.name()=='ACTIVE'}">
+    <div class="col-12 col-lg-6" th:if="${me.canWrite() and available.signum() > 0 and !#lists.isEmpty(open)}"><div class="card h-100">
+      <div class="card-head"><h2>Apply credit to an invoice</h2></div>
+      <form th:action="@{/payments/{id}/allocate(id=${p.id})}" method="post" class="card-pad row g-2">
+        <div class="col-12"><label class="form-label">Invoice</label><select class="form-select" name="invoiceId"><option th:each="r : ${open}" th:value="${r.id()}" th:text="${r.number() + ' - balance ' + @fmt.money(r.balance())}"></option></select></div>
+        <div class="col-7"><label class="form-label">Amount</label><input class="form-control" name="amount" th:value="${available}" inputmode="decimal" required></div>
+        <div class="col-5 d-flex align-items-end"><button class="btn btn-primary w-100">Apply</button></div></form></div></div>
+    <div class="col-12 col-lg-6" th:if="${me.admin() and available.signum() > 0}"><div class="card h-100">
+      <div class="card-head"><h2>Refund credit to customer</h2></div>
+      <form th:action="@{/payments/{id}/refund(id=${p.id})}" method="post" class="card-pad row g-2" onsubmit="return confirm('Record a refund to the customer?');">
+        <div class="col-6"><label class="form-label">Amount</label><input class="form-control" name="amount" th:value="${available}" inputmode="decimal" required></div>
+        <div class="col-6"><label class="form-label">Method</label><select class="form-select" name="method"><option th:each="m : ${methods}" th:value="${m}" th:text="${m.label}"></option></select></div>
+        <div class="col-6"><label class="form-label">Date</label><input type="date" class="form-control" name="refundDate" th:value="${today}"></div>
+        <div class="col-6"><label class="form-label">Reference</label><input class="form-control" name="reference"></div>
+        <div class="col-12"><label class="form-label">Notes</label><input class="form-control" name="notes"></div>
+        <div class="col-12"><button class="btn btn-outline-danger">Record refund</button></div></form></div></div>
+    <div class="col-12" th:if="${me.admin()}"><div class="card">
+      <div class="card-head"><div><h2>Reverse this receipt</h2><div class="sub">For a bounced cheque or a mistake. Also reverses its allocations. Not possible after a refund.</div></div></div>
+      <form th:action="@{/payments/{id}/reverse(id=${p.id})}" method="post" class="card-pad d-flex gap-2" onsubmit="return confirm('Reverse this whole receipt?');">
+        <input class="form-control" name="reason" placeholder="Reason (required)" required><button class="btn btn-outline-danger text-nowrap">Reverse receipt</button></form></div></div>
+  </div>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

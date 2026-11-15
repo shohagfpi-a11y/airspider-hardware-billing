@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Product')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('items')}"></div>
+<main class="page page-narrow">
+  <div class="crumb"><a class="back-btn" th:href="@{/items}"><svg th:replace="~{fragments :: icon('arrow-left')}"></svg>Back to Products</a><span class="crumb-path"><a th:href="@{/items}">Products</a> / <span th:text="${form.id == null} ? 'New' : ${code}"></span></span></div>
+  <div class="page-head"><div><h1 th:text="${form.id == null} ? 'New product' : 'Edit product'"></h1>
+    <p th:text="${form.id == null} ? 'A permanent product code (P00001...) is assigned automatically.' : 'Code ' + ${code} + ' - editing never changes invoices already issued.'"></p></div></div>
+  <div th:replace="~{fragments :: flash}"></div>
+  <form th:action="@{/items}" th:object="${form}" method="post" class="card">
+    <input type="hidden" th:field="*{id}">
+    <div class="form-section">
+      <h3>Product</h3><div class="desc">How it appears in search and on invoices.</div>
+      <div class="row g-3">
+        <div class="col-12 col-md-8"><label class="form-label required">Name</label><input class="form-control" th:field="*{name}" th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"><div class="invalid-feedback" th:errors="*{name}"></div></div>
+        <div class="col-12 col-md-4"><label class="form-label">Type</label><select class="form-select" th:field="*{itemType}"><option th:each="t : ${types}" th:value="${t}" th:text="${t.name() == 'SERVICE'} ? 'Service' : 'Product'"></option></select></div>
+        <div class="col-12 col-md-6"><label class="form-label">Barcode <span class="hint fw-normal">(optional - scan it here)</span></label><input class="form-control mono" th:field="*{barcode}" autocomplete="off"></div>
+        <div class="col-12 col-md-6"><label class="form-label">Serial no. <span class="hint fw-normal">(optional - printed on the invoice)</span></label><input class="form-control mono" th:field="*{serialNo}" autocomplete="off"></div>
+        <div class="col-12"><label class="form-label">Description</label><input class="form-control" th:field="*{description}"></div>
+      </div>
+    </div>
+    <div class="form-section">
+      <h3>Price &amp; tax</h3><div class="desc">Default values; they can be changed on each invoice. Prices exclude tax.</div>
+      <div class="row g-3">
+        <div class="col-4"><label class="form-label required">Unit</label><input class="form-control" th:field="*{unit}" placeholder="pcs, box, m, set, job"></div>
+        <div class="col-4"><label class="form-label required">Selling price</label><input class="form-control" th:field="*{defaultPrice}" inputmode="decimal" th:classappend="${#fields.hasErrors('defaultPrice')} ? 'is-invalid'"><div class="invalid-feedback" th:errors="*{defaultPrice}"></div></div>
+        <div class="col-4"><label class="form-label required">Tax %</label><input class="form-control" th:field="*{taxRate}" inputmode="decimal" th:classappend="${#fields.hasErrors('taxRate')} ? 'is-invalid'"><div class="invalid-feedback" th:errors="*{taxRate}"></div></div>
+      </div>
+    </div>
+    <div class="form-section">
+      <h3>Default warranty <span class="hint fw-normal">(optional)</span></h3><div class="desc">Only a suggestion: on the invoice, warranty is added per line with its own checkbox.</div>
+      <div class="form-check form-switch mb-3"><input type="checkbox" class="form-check-input" th:field="*{warrantyEnabled}"><label class="form-check-label" for="warrantyEnabled">Suggest a warranty for this product</label></div>
+      <div class="row g-3">
+        <div class="col-6 col-md-3"><label class="form-label">Duration</label><input type="number" min="1" class="form-control" th:field="*{warrantyDuration}"></div>
+        <div class="col-6 col-md-3"><label class="form-label">Period</label><select class="form-select" th:field="*{warrantyUnit}"><option th:each="u : ${units}" th:value="${u}" th:text="${#strings.capitalize(#strings.toLowerCase(u.name()))}"></option></select></div>
+        <div class="col-12 col-md-6"><label class="form-label">Terms</label><input class="form-control" th:field="*{warrantyTerms}"></div>
+      </div>
+    </div>
+    <div class="form-section" th:if="${form.id != null}">
+      <div class="form-check form-switch"><input type="checkbox" class="form-check-input" th:field="*{active}"><label class="form-check-label" for="active">Active (inactive products are hidden from invoice search; the code stays reserved)</label></div>
+    </div>
+    <div class="form-actions"><a class="btn btn-light" th:href="@{/items}">Cancel</a><button class="btn btn-primary"><svg th:replace="~{fragments :: icon('check')}"></svg>Save product</button></div>
+  </form>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

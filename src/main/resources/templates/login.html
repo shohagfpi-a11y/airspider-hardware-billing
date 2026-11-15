@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Sign in')}"></head>
+<body>
+<main class="login-wrap">
+  <!-- brand panel (desktop / tablet) -->
+  <section class="login-brand">
+    <div class="login-brand-inner">
+      <div class="logo-tile">
+        <img th:if="${hasLogo}" th:src="@{/brand/logo}" alt="Company logo">
+        <span th:unless="${hasLogo}" class="brand-mark brand-mark-xl" th:text="${#strings.toUpperCase(#strings.substring(companyName,0,1))}">H</span>
+      </div>
+      <h1 th:text="${companyName}">Company</h1>
+      <p class="addr" th:if="${co != null}">
+        <span th:text="${co.address}"></span><span th:if="${co.address != null and co.city != null}">, </span><span th:text="${co.city}"></span><span th:if="${co.country != null}">, </span><span th:text="${co.country}"></span>
+      </p>
+      <ul class="perks">
+        <li><svg th:replace="~{fragments :: icon('invoice')}"></svg>Tax invoices with barcode, PDF and print</li>
+        <li><svg th:replace="~{fragments :: icon('wallet')}"></svg>Payments, advances and customer credit</li>
+        <li><svg th:replace="~{fragments :: icon('chart')}"></svg>Statements and A4 reports</li>
+      </ul>
+      <div class="brand-foot" th:if="${co != null}">
+        <span th:if="${co.taxNumber}">TRN <b th:text="${co.taxNumber}"></b></span>
+        <span th:if="${co.phone}"> &middot; Tel <span th:text="${co.phone}"></span></span>
+        <span th:if="${co.mobile}"> &middot; <span th:text="${co.mobile}"></span></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- sign-in form -->
+  <section class="login-form">
+    <div class="login-card">
+      <div class="login-mobile-logo">
+        <img th:if="${hasLogo}" th:src="@{/brand/logo}" alt="Company logo">
+        <span th:unless="${hasLogo}" class="brand-mark" th:text="${#strings.toUpperCase(#strings.substring(companyName,0,1))}">H</span>
+      </div>
+      <h2>Welcome back</h2>
+      <p class="muted mb-4">Sign in to the <span th:text="${companyName}"></span> staff portal</p>
+      <div class="alert alert-danger" th:if="${param.error}">Invalid username or password.</div>
+      <div class="alert alert-warning" th:if="${param.locked}">Too many failed attempts. Please try again in a few minutes.</div>
+      <div class="alert alert-info" th:if="${param.logout}">You have been signed out.</div>
+      <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+      <form th:action="@{/login}" method="post">
+        <div class="mb-3"><label class="form-label" for="u">Username</label>
+          <input class="form-control form-control-lg" id="u" name="username" autofocus autocomplete="username" required></div>
+        <div class="mb-4"><label class="form-label" for="p">Password</label>
+          <div class="pw-wrap"><input class="form-control form-control-lg" id="p" type="password" name="password" autocomplete="current-password" required>
+            <button type="button" class="pw-toggle" aria-label="Show password" onclick="const i=document.getElementById('p');i.type=i.type==='password'?'text':'password';"><svg th:replace="~{fragments :: icon('eye')}"></svg></button></div></div>
+        <button class="btn btn-primary btn-lg w-100">Sign in</button>
+      </form>
+      <p class="login-note"><svg th:replace="~{fragments :: icon('shield')}"></svg>Secure staff access. Accounts are created by your administrator.</p>
+      <p class="login-version" th:text="${'Version ' + appVersion}">Version 0.0.1</p>
+    </div>
+  </section>
+</main>
+</body>
+</html>

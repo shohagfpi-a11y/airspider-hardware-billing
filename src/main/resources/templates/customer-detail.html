@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Customer')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('customers')}"></div>
+<main class="page">
+  <div class="crumb"><a class="back-btn" th:href="@{/customers}"><svg th:replace="~{fragments :: icon('arrow-left')}"></svg>Back to Customers</a><span class="crumb-path"><a th:href="@{/customers}">Customers</a> / <span th:text="${c.code}"></span></span></div>
+  <div class="page-head">
+    <div class="who-cell">
+      <span class="avatar" style="width:52px;height:52px;font-size:1.2rem" th:text="${#strings.substring(c.name,0,1)}">A</span>
+      <div><h1><span th:text="${c.name}"></span> <span class="badge text-bg-secondary align-middle" th:unless="${c.active}">Inactive</span></h1>
+        <p><span class="mono" th:text="${c.code}"></span><span th:if="${c.taxNumber}"> &middot; TRN <span class="mono" th:text="${c.taxNumber}"></span></span></p></div>
+    </div>
+    <div class="actions">
+      <a class="btn btn-light" th:href="@{/customers/{id}/statement(id=${c.id})}" target="_blank"><svg th:replace="~{fragments :: icon('eye')}"></svg>Statement</a>
+      <a class="btn btn-light" th:href="@{/customers/{id}/statement(id=${c.id},autoprint=1)}" target="_blank"><svg th:replace="~{fragments :: icon('printer')}"></svg>Print</a>
+      <a class="btn btn-light" th:href="@{/customers/{id}/statement.pdf(id=${c.id})}"><svg th:replace="~{fragments :: icon('download')}"></svg>PDF</a>
+      <a class="btn btn-light" th:if="${me.canWrite()}" th:href="@{/customers/{id}/edit(id=${c.id})}"><svg th:replace="~{fragments :: icon('edit')}"></svg>Edit</a>
+      <a class="btn btn-success" th:if="${me.canWrite()}" th:href="@{/payments/new(customerId=${c.id})}"><svg th:replace="~{fragments :: icon('wallet')}"></svg>Payment / advance</a>
+      <a class="btn btn-primary" th:if="${me.canWrite()}" th:href="@{/invoices/new(customerId=${c.id})}"><svg th:replace="~{fragments :: icon('plus')}"></svg>New invoice</a>
+    </div>
+  </div>
+  <div th:replace="~{fragments :: flash}"></div>
+
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-md-4"><div class="card metric">
+      <div class="top"><span class="label">Outstanding receivable</span><span class="chip chip-violet"><svg th:replace="~{fragments :: icon('clock')}"></svg></span></div>
+      <div class="value" th:text="${@fmt.money(pos.outstanding())}"></div><div class="basis">Issued invoices minus payments applied</div></div></div>
+    <div class="col-12 col-md-4"><div class="card metric">
+      <div class="top"><span class="label">Available advance credit</span><span class="chip chip-cyan"><svg th:replace="~{fragments :: icon('wallet')}"></svg></span></div>
+      <div class="value text-cyan" th:text="${@fmt.money(pos.credit())}"></div><div class="basis">Money received, not yet applied or refunded</div></div></div>
+    <div class="col-12 col-md-4"><div class="card metric">
+      <div class="top"><span class="label">Net position</span><span class="chip chip-blue"><svg th:replace="~{fragments :: icon('chart')}"></svg></span></div>
+      <div class="value" th:text="${@fmt.money(pos.outstanding().subtract(pos.credit()))}"></div><div class="basis">Receivable minus credit (negative = we owe the customer)</div></div></div>
+  </div>
+
+  <div class="row g-3">
+    <div class="col-12 col-xl-4"><div class="card card-pad h-100">
+      <h2 class="section-title mb-3">Contact</h2>
+      <dl class="kv-list">
+        <dt>Contact person</dt><dd th:text="${c.contactPerson ?: '-'}"></dd>
+        <dt>Mobile</dt><dd th:text="${c.mobile ?: '-'}"></dd>
+        <dt>Telephone</dt><dd th:text="${c.phone ?: '-'}"></dd>
+        <dt>Email</dt><dd th:text="${c.email ?: '-'}"></dd>
+        <dt>Billing address</dt><dd th:text="${c.billingAddress ?: '-'}"></dd>
+        <dt>Payment terms</dt><dd th:text="${c.defaultPaymentTermsDays != null} ? ${c.defaultPaymentTermsDays + ' days'} : 'Company default'"></dd>
+        <dt th:if="${c.notes}">Notes</dt><dd th:if="${c.notes}" th:text="${c.notes}"></dd>
+      </dl></div></div>
+    <div class="col-12 col-xl-8"><div class="card">
+      <div class="card-head"><h2>Invoices</h2><span class="sub" th:text="${#lists.size(invoices) + ' total'}"></span></div>
+      <div class="table-wrap"><table class="table table-modern">
+        <thead><tr><th>Invoice</th><th>Due</th><th>Status</th><th class="num">Total</th><th class="num">Balance</th></tr></thead>
+        <tbody><tr th:each="r : ${invoices}">
+          <td><a class="strong" th:href="@{/invoices/{id}(id=${r.id()})}" th:text="${r.number() ?: 'Draft #' + r.id()}"></a><div class="cell-sub" th:text="${@fmt.date(r.date())}"></div></td>
+          <td th:text="${@fmt.date(r.due())}"></td>
+          <td><span th:replace="~{fragments :: docBadge(${r.status().name()})}"></span>
+              <th:block th:if="${r.status().name()=='ISSUED'}"><span th:replace="~{fragments :: payBadge(${r.paymentStatus().name()})}"></span></th:block>
+              <span th:if="${r.overdue()}" class="badge text-bg-danger">Overdue</span></td>
+          <td class="num" th:text="${@fmt.money(r.total())}"></td><td class="num fw-semibold" th:text="${@fmt.money(r.balance())}"></td></tr></tbody></table></div>
+      <div class="empty" th:if="${#lists.isEmpty(invoices)}">No invoices yet.</div></div></div>
+    <div class="col-12 col-xl-6"><div class="card h-100">
+      <div class="card-head"><h2>Receipts</h2></div>
+      <div class="table-wrap"><table class="table table-modern">
+        <thead><tr><th>Receipt</th><th class="num">Amount</th><th class="num">Credit left</th></tr></thead>
+        <tbody><tr th:each="r : ${receipts}">
+          <td><a class="strong" th:href="@{/payments/{id}(id=${r.id()})}" th:text="${r.receiptNo()}"></a> <span class="badge text-bg-danger" th:if="${r.status()=='REVERSED'}">Reversed</span>
+            <div class="cell-sub" th:text="${@fmt.date(r.date())}"></div></td>
+          <td class="num fw-semibold" th:text="${@fmt.money(r.amount())}"></td><td class="num text-cyan" th:text="${@fmt.money(r.available())}"></td></tr></tbody></table></div>
+      <div class="empty" th:if="${#lists.isEmpty(receipts)}">No receipts yet.</div></div></div>
+    <div class="col-12 col-xl-6"><div class="card h-100">
+      <div class="card-head"><h2>Payment allocations</h2><span class="sub">Which receipt paid which invoice</span></div>
+      <div class="table-wrap"><table class="table table-modern">
+        <thead><tr><th>Date</th><th>Receipt</th><th>Applied to</th><th class="num">Amount</th></tr></thead>
+        <tbody><tr th:each="a : ${applied}"><td th:text="${@fmt.date(a.date())}"></td><td class="mono" th:text="${a.ref()}"></td>
+          <td th:text="${a.description()}"></td><td class="num" th:text="${@fmt.money(a.applied())}"></td></tr></tbody></table></div>
+      <div class="empty" th:if="${#lists.isEmpty(applied)}">Nothing applied yet.</div></div></div>
+  </div>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

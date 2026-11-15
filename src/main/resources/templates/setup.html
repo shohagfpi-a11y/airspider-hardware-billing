@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('First-time setup')}"></head>
+<body>
+<main class="auth-wrap">
+  <div style="width:100%;max-width:860px">
+    <div class="text-center mb-4">
+      <span class="brand-mark mx-auto mb-3" style="width:48px;height:48px">H</span>
+      <h1 class="h3 fw-bold mb-1">Welcome - let's set up your company</h1>
+      <p class="muted">Enter the one-time setup token from the server window, your company details and the first administrator.</p>
+    </div>
+    <div th:replace="~{fragments :: flash}"></div>
+    <form th:action="@{/setup}" th:object="${form}" method="post" class="card">
+      <div class="alert alert-danger m-3 mb-0" th:if="${#fields.hasErrors('*')}">Please correct the highlighted fields.</div>
+      <div class="form-section">
+        <h3>1. Security</h3><div class="desc">The token is printed in the server console (or set with SETUP_TOKEN). It stops working after setup.</div>
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label required">Setup token</label><input class="form-control mono" th:field="*{token}" autocomplete="off" th:classappend="${#fields.hasErrors('token')} ? 'is-invalid'"></div>
+          <div class="col-12 col-md-6"><label class="form-label required">Admin username</label><input class="form-control" th:field="*{adminUsername}" autocomplete="off" th:classappend="${#fields.hasErrors('adminUsername')} ? 'is-invalid'"><div class="invalid-feedback" th:errors="*{adminUsername}"></div></div>
+          <div class="col-12 col-md-6"><label class="form-label required">Admin full name</label><input class="form-control" th:field="*{adminName}" th:classappend="${#fields.hasErrors('adminName')} ? 'is-invalid'"></div>
+          <div class="col-12 col-md-6"><label class="form-label required">Password (min 10 characters)</label><input class="form-control" type="password" th:field="*{password}" autocomplete="new-password"></div>
+          <div class="col-12 col-md-6"><label class="form-label required">Confirm password</label><input class="form-control" type="password" th:field="*{confirm}" autocomplete="new-password" th:classappend="${#fields.hasErrors('confirm')} ? 'is-invalid'"><div class="invalid-feedback" th:errors="*{confirm}"></div></div>
+        </div>
+      </div>
+      <div class="form-section">
+        <h3>2. Company</h3><div class="desc">You can change all of this later in Company settings.</div>
+        <div class="row g-3">
+          <div class="col-12 col-md-6"><label class="form-label required">Legal company name</label><input class="form-control" th:field="*{company.legalName}" th:classappend="${#fields.hasErrors('company.legalName')} ? 'is-invalid'"></div>
+          <div class="col-12 col-md-6"><label class="form-label">Trading name</label><input class="form-control" th:field="*{company.tradingName}"></div>
+          <div class="col-12"><label class="form-label">Address</label><input class="form-control" th:field="*{company.address}"></div>
+          <div class="col-6 col-md-4"><label class="form-label">City</label><input class="form-control" th:field="*{company.city}"></div>
+          <div class="col-6 col-md-4"><label class="form-label">Country</label><input class="form-control" th:field="*{company.country}"></div>
+          <div class="col-12 col-md-4"><label class="form-label">TRN</label><input class="form-control mono" th:field="*{company.taxNumber}"></div>
+          <div class="col-6 col-md-4"><label class="form-label">Telephone</label><input class="form-control" th:field="*{company.phone}"></div>
+          <div class="col-6 col-md-4"><label class="form-label">Mobile</label><input class="form-control" th:field="*{company.mobile}"></div>
+          <div class="col-12 col-md-4"><label class="form-label">Email</label><input class="form-control" th:field="*{company.email}"></div>
+          <div class="col-6 col-md-3"><label class="form-label required">Currency</label><input class="form-control" th:field="*{company.currency}"></div>
+          <div class="col-6 col-md-3"><label class="form-label required">Timezone</label><input class="form-control" th:field="*{company.timezone}"></div>
+          <div class="col-6 col-md-3"><label class="form-label required">Tax label</label><input class="form-control" th:field="*{company.taxLabel}"></div>
+          <div class="col-6 col-md-3"><label class="form-label required">Default tax %</label><input class="form-control" th:field="*{company.defaultTaxRate}"></div>
+        </div>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary btn-lg">Complete setup</button></div>
+    </form>
+  </div>
+</main>
+</body>
+</html>

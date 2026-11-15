@@ -1,0 +1,170 @@
+/* Shared by browser print view and PDF (OpenHTMLtoPDF). Tables + floats only (no flex/grid) so both engines agree.
+   Palette: ink #0f172a, muted #64748b, line #e2e8f0, accent #1e40af, tint #eff4ff, zebra #f8fafc */
+@page {
+  size: A4;
+  margin: 12mm 12mm 16mm 12mm;
+  @bottom-right { content: "Page " counter(page) " of " counter(pages); font-size: 7.5pt; color: #64748b; }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { font-family: AppSans, Helvetica, Arial, sans-serif; font-size: 9pt; color: #0f172a; line-height: 1.4; }
+table { border-collapse: collapse; width: 100%; }
+td, th { vertical-align: top; }
+.muted { color: #64748b; }
+.small { font-size: 8pt; }
+.right { text-align: right; }
+.center { text-align: center; }
+.bold { font-weight: bold; }
+.nowrap { white-space: nowrap; }
+.wrap { word-wrap: break-word; overflow-wrap: break-word; }
+
+/* ---------- accent band (invoice) ---------- */
+.band { background: #1e40af; color: #fff; margin-bottom: 5mm; }
+.band td { padding: 3.2mm 5mm; vertical-align: middle; }
+.band .t { font-size: 17pt; font-weight: bold; letter-spacing: 1.5pt; }
+.band .n { font-size: 12pt; font-weight: bold; text-align: right; }
+.pill { white-space: nowrap; display: inline-block; padding: .5mm 2.6mm; border-radius: 9px; font-size: 7.5pt; font-weight: bold; color: #fff; letter-spacing: .4pt; }
+.pill-draft { background: #d97706; }
+.pill-void { background: #dc2626; }
+.pill-paid { background: #16a34a; }
+.pill-part { background: #d97706; }
+.pill-unpaid { background: #475569; }
+.band .pill { border: 1px solid rgba(255,255,255,.55); }
+
+/* ---------- header (all documents) ---------- */
+.hdr { margin-bottom: 4mm; border-bottom: 2px solid #1e40af; padding-bottom: 3mm; }
+.hdr td { vertical-align: top; }
+.brand-name { font-size: 15pt; font-weight: bold; color: #1e40af; margin: 0 0 1mm 0; }
+.logo { max-height: 17mm; max-width: 52mm; margin-bottom: 1.5mm; }
+.doc-title { font-size: 15pt; font-weight: bold; letter-spacing: .6pt; color: #1e40af; text-align: right; margin: 0; white-space: nowrap; }
+.doc-no { font-size: 11pt; font-weight: bold; text-align: right; margin-top: 1mm; }
+.inv-head { margin-bottom: 4mm; }
+.inv-head td { vertical-align: top; }
+.barcode { text-align: right; }
+.barcode img { height: 11mm; max-width: 60mm; }
+.barcode .num { font-size: 8pt; letter-spacing: 1.2pt; text-align: right; margin-top: .6mm; }
+
+.banner { border: 1.5px solid #d97706; color: #b45309; padding: 1.5mm 3mm; font-weight: bold; text-align: center; margin-bottom: 3mm; border-radius: 3px; }
+.banner-void { border-color: #dc2626; color: #b91c1c; }
+
+/* ---------- meta strip + cards ---------- */
+.meta { border-collapse: separate; border-spacing: 2mm 0; margin: 0 -2mm 4mm -2mm; width: 190mm; table-layout: fixed; }
+.meta td { background: #eff4ff; border-radius: 4px; padding: 2mm 3mm; }
+.meta .k { font-size: 7pt; text-transform: uppercase; letter-spacing: .5pt; color: #64748b; }
+.meta .v { font-size: 9.5pt; font-weight: bold; word-wrap: break-word; overflow-wrap: break-word; }
+.cards { border-collapse: separate; border-spacing: 0; margin-bottom: 3.5mm; }
+.cards td.c1 { width: 58%; padding-right: 2mm; }
+.cards td.c2 { width: 42%; padding-left: 2mm; }
+.card { border: 1px solid #e2e8f0; border-radius: 5px; padding: 3mm 3.5mm; min-height: 25mm; }
+.card h4, .box h4 { margin: 0 0 1.5mm 0; font-size: 7pt; letter-spacing: .6pt; text-transform: uppercase; color: #64748b; }
+.due-card { background: #1e40af; color: #fff; border: 0; text-align: right; }
+.due-card h4 { color: #bfdbfe; }
+.due-card .amt { font-size: 19pt; font-weight: bold; margin-top: .5mm; }
+.due-card .cur { font-size: 9pt; font-weight: normal; }
+.due-card .sub { font-size: 7.5pt; color: #dbeafe; margin-top: 1mm; }
+
+.info { margin-bottom: 4mm; }
+.info td.cell { width: 50%; padding: 0; }
+.box { border: 1px solid #e2e8f0; border-radius: 5px; padding: 2.5mm 3mm; min-height: 24mm; }
+.kv td { padding: .4mm 0; }
+.kv td.k { width: 36%; color: #64748b; }
+.gap { width: 4mm; }
+
+/* ---------- items ---------- */
+table.items { -fs-table-paginate: paginate; margin-bottom: 3mm; table-layout: fixed; }
+table.items thead { display: table-header-group; }
+table.items tr { page-break-inside: avoid; }
+table.items th { background: #1e40af; color: #fff; font-size: 7.5pt; padding: 2mm 1.4mm; text-align: left; text-transform: uppercase; letter-spacing: .3pt; }
+table.items th.r, table.items td.r { text-align: right; }
+table.items td { padding: 1.25mm 1.4mm; border-bottom: 1px solid #e2e8f0; font-size: 8.7pt; }
+table.items tr.alt td { background: #f8fafc; }
+table.items .desc { word-wrap: break-word; overflow-wrap: break-word; }
+.item-name { font-weight: bold; }
+.item-sub { font-size: 7.2pt; color: #64748b; margin-top: 0; }
+.warranty { font-size: 7.5pt; color: #166534; margin-top: .6mm; }
+.code { font-family: Courier, monospace; font-size: 7.5pt; }
+.vat-rate { font-size: 7pt; color: #64748b; }
+
+/* ---------- summary ---------- */
+.summary { page-break-inside: avoid; margin-bottom: 3mm; }
+.summary td.left { width: 52%; padding-right: 6mm; }
+.tot-card { border: 1px solid #e2e8f0; border-radius: 5px; padding: 1mm 0; }
+.tot td { padding: 1.2mm 3mm; }
+.tot tr.grand td { font-size: 11pt; font-weight: bold; background: #eff4ff; color: #1e40af; }
+.tot tr.due td { font-weight: bold; font-size: 10.5pt; background: #1e40af; color: #fff; }
+.tot tr.sep td { border-top: 1px solid #e2e8f0; }
+.asof { font-size: 7.5pt; color: #64748b; padding: 1.5mm 3mm 0 3mm; }
+.pay td { padding: .5mm 3mm; font-size: 8pt; color: #334155; }
+.bank { border: 1px solid #e2e8f0; border-radius: 5px; padding: 2.5mm 3mm; margin-bottom: 2.5mm; }
+.bank h4, .terms h4 { margin: 0 0 1mm 0; font-size: 7pt; letter-spacing: .6pt; text-transform: uppercase; color: #64748b; }
+.terms { margin-bottom: 2mm; }
+
+.words { background: #eff4ff; border-radius: 5px; padding: 2.5mm 3mm; margin-bottom: 2.5mm; }
+.words h4 { margin: 0 0 .8mm 0; font-size: 7pt; letter-spacing: .6pt; text-transform: uppercase; color: #64748b; }
+.words div { font-weight: bold; color: #1e3a8a; font-size: 9pt; }
+.notice { border-left: 3px solid #d97706; background: #fff8eb; color: #78350f; padding: 2mm 3mm; font-size: 8.3pt; margin: 2mm 0 2mm 0; border-radius: 0 4px 4px 0; }
+
+/* ---------- declaration + signatures ---------- */
+.decl { font-size: 8pt; margin: 2mm 0 3mm 0; color: #334155; }
+.sign { page-break-inside: avoid; margin-top: 2mm; }
+.sign td { width: 50%; padding: 0 5mm; text-align: center; vertical-align: bottom; }
+.sign .area { height: 25mm; border-bottom: 1px solid #94a3b8; text-align: center; }
+.sign .area img { max-height: 24mm; max-width: 52mm; vertical-align: bottom; }
+.sign .lbl { font-size: 8pt; margin-top: 1mm; color: #475569; }
+.thanks { margin-top: 3mm; text-align: center; font-size: 8.5pt; color: #1e40af; font-weight: bold; }
+
+/* ---------- receipt + statement ---------- */
+table.plain th { background: #1e40af; color: #fff; font-size: 7.5pt; padding: 2mm 1.4mm; text-align: left; text-transform: uppercase; }
+table.plain td { padding: 1.7mm 1.4mm; border-bottom: 1px solid #e2e8f0; font-size: 8.6pt; }
+table.plain th.r, table.plain td.r { text-align: right; }
+table.plain { -fs-table-paginate: paginate; }
+table.plain thead { display: table-header-group; }
+table.plain tr { page-break-inside: avoid; }
+tr.info-row td { color: #64748b; font-style: italic; }
+.big { font-size: 16pt; font-weight: bold; color: #1e40af; }
+table.tot { margin: 0; }
+table.summary td > table.tot { border: 1px solid #e2e8f0; border-radius: 5px; }
+
+/* ---------- A4 reports (shared header: company, address, title band) ---------- */
+.rh { margin-bottom: 3mm; }
+.rh td { vertical-align: middle; }
+.rh .logo-cell { width: 1%; padding-right: 5mm; white-space: nowrap; }
+.rh .logo-cell img { max-height: 15mm; max-width: 55mm; }
+.rh .co-name { font-size: 14pt; font-weight: bold; color: #0f172a; line-height: 1.2; }
+.rh .co-addr { font-size: 8pt; color: #475569; margin-top: .6mm; }
+.rtitle { background: #1e40af; color: #fff; margin-bottom: 2.5mm; }
+.rtitle td { padding: 2.6mm 4mm; vertical-align: middle; }
+.rtitle .t { font-size: 13pt; font-weight: bold; letter-spacing: .6pt; text-transform: uppercase; }
+.rtitle .s { font-size: 7.5pt; color: #dbeafe; text-align: right; white-space: nowrap; }
+.rmeta { font-size: 7.8pt; color: #475569; margin-bottom: 3mm; }
+.rsum { border-collapse: separate; border-spacing: 2mm 0; margin-bottom: 3.5mm; table-layout: fixed; }
+.rsum td { background: #eff4ff; border-radius: 4px; padding: 2mm 3mm; }
+.rsum .k { font-size: 6.8pt; text-transform: uppercase; letter-spacing: .5pt; color: #64748b; }
+.rsum .v { font-size: 11.5pt; font-weight: bold; color: #0f172a; margin-top: .4mm; }
+table.rtable { -fs-table-paginate: paginate; }
+table.rtable thead { display: table-header-group; }
+table.rtable tr { page-break-inside: avoid; }
+table.rtable th { background: #1e40af; color: #fff; font-size: 7pt; text-transform: uppercase; letter-spacing: .3pt; padding: 1.7mm 1.6mm; text-align: left; }
+table.rtable th.r, table.rtable td.r { text-align: right; }
+table.rtable td { font-size: 8pt; padding: 1.25mm 1.6mm; border-bottom: 1px solid #e2e8f0; word-wrap: break-word; overflow-wrap: break-word; }
+table.rtable tr.alt td { background: #f8fafc; }
+table.rtable tr.tot-row td { font-weight: bold; background: #eff4ff; border-top: 1.5px solid #1e40af; border-bottom: 1.5px solid #1e40af; padding: 1.8mm 1.6mm; font-size: 8.4pt; }
+.rnote { font-size: 7.3pt; color: #64748b; margin-top: 2.5mm; }
+
+/* ---------- screen-only chrome (never printed, never in PDF) ---------- */
+.toolbar { display: none; }
+@media screen {
+  body { background: #e2e8f0; }
+  .sheet { background: #fff; max-width: 210mm; margin: 8mm auto; padding: 12mm; box-shadow: 0 2px 12px rgba(0,0,0,.2); }
+  .toolbar { display: block; max-width: 210mm; margin: 4mm auto 0 auto; text-align: right; }
+  .toolbar a, .toolbar button { display: inline-block; font: 13px Arial, sans-serif; padding: 7px 14px; margin-left: 6px; border: 1px solid #1e40af; background: #fff; color: #1e40af; border-radius: 5px; text-decoration: none; cursor: pointer; }
+  .toolbar .primary { background: #1e40af; color: #fff; }
+  .sheet .band { margin: -12mm -12mm 5mm -12mm; width: calc(100% + 24mm); }
+  .sheet .meta { width: 100%; }
+  .sheet-landscape { max-width: 297mm; }
+  .toolbar:has(+ .sheet-landscape) { max-width: 297mm; }
+}
+@media print {
+  .toolbar { display: none !important; }
+  body { background: #fff; }
+}

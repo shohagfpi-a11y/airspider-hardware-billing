@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Customer')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('customers')}"></div>
+<main class="page page-narrow">
+  <div class="crumb"><a class="back-btn" th:href="@{/customers}"><svg th:replace="~{fragments :: icon('arrow-left')}"></svg>Back to Customers</a><span class="crumb-path"><a th:href="@{/customers}">Customers</a> / <span th:text="${form.id == null} ? 'New' : ${code}"></span></span></div>
+  <div class="page-head"><div><h1 th:text="${form.id == null} ? 'New customer' : 'Edit customer'"></h1>
+    <p th:text="${form.id == null} ? 'A customer code is assigned automatically.' : 'Code ' + ${code} + ' - changes do not alter invoices already issued.'"></p></div></div>
+  <div th:replace="~{fragments :: flash}"></div>
+  <form th:action="@{/customers}" th:object="${form}" method="post" class="card">
+    <input type="hidden" th:field="*{id}">
+    <div class="form-section">
+      <h3>Customer</h3><div class="desc">Person or company name as it should appear on invoices.</div>
+      <div class="row g-3">
+        <div class="col-12 col-md-8"><label class="form-label required">Name</label><input class="form-control" th:field="*{name}" th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'"><div class="invalid-feedback" th:errors="*{name}"></div></div>
+        <div class="col-12 col-md-4"><label class="form-label">Tax number / TRN</label><input class="form-control" th:field="*{taxNumber}"></div>
+        <div class="col-12"><label class="form-label">Billing address</label><textarea class="form-control" rows="2" th:field="*{billingAddress}"></textarea></div>
+      </div>
+    </div>
+    <div class="form-section">
+      <h3>Contact</h3><div class="desc">Who to talk to about invoices and payments.</div>
+      <div class="row g-3">
+        <div class="col-12 col-md-6"><label class="form-label">Contact person</label><input class="form-control" th:field="*{contactPerson}"></div>
+        <div class="col-12 col-md-6"><label class="form-label">Email</label><input class="form-control" type="email" th:field="*{email}" th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'"><div class="invalid-feedback" th:errors="*{email}"></div></div>
+        <div class="col-6"><label class="form-label">Mobile</label><input class="form-control" type="tel" th:field="*{mobile}"></div>
+        <div class="col-6"><label class="form-label">Telephone</label><input class="form-control" type="tel" th:field="*{phone}"></div>
+      </div>
+    </div>
+    <div class="form-section">
+      <h3>Terms &amp; notes</h3><div class="desc">Leave the payment terms empty to use the company default.</div>
+      <div class="row g-3">
+        <div class="col-12 col-md-4"><label class="form-label">Payment terms (days)</label><input type="number" min="0" class="form-control" th:field="*{defaultPaymentTermsDays}"></div>
+        <div class="col-12"><label class="form-label">Notes</label><textarea class="form-control" rows="2" th:field="*{notes}"></textarea></div>
+        <div class="col-12" th:if="${form.id != null}"><div class="form-check form-switch"><input type="checkbox" class="form-check-input" th:field="*{active}"><label class="form-check-label" for="active">Active customer</label></div></div>
+      </div>
+    </div>
+    <div class="form-actions"><a class="btn btn-light" th:href="@{/customers}">Cancel</a><button class="btn btn-primary"><svg th:replace="~{fragments :: icon('check')}"></svg>Save customer</button></div>
+  </form>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

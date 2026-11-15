@@ -1,0 +1,11 @@
+target/
+data/
+data-run.log
+test-run*.log
+.env
+backups/
+deploy/nginx/active/*
+!deploy/nginx/active/.gitkeep
+*.iml
+.idea/
+.vscode/

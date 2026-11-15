@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Invoices')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('invoices')}"></div>
+<main class="page">
+  <div class="page-head">
+    <div><h1>Invoices</h1><p>Drafts, issued and voided invoices with their payment status</p></div>
+    <div class="actions"><a class="btn btn-primary" th:if="${me.canWrite()}" th:href="@{/invoices/new}"><svg th:replace="~{fragments :: icon('plus')}"></svg>New invoice</a></div>
+  </div>
+  <div th:replace="~{fragments :: flash}"></div>
+
+  <form class="card filter-bar mb-3" method="get">
+    <div class="f grow"><label class="form-label">Search</label>
+      <div class="search-box"><svg th:replace="~{fragments :: icon('search')}"></svg><input class="form-control" name="q" th:value="${param.q}" placeholder="Invoice no., customer, LPO"></div></div>
+    <div class="f"><label class="form-label">Customer</label><select class="form-select" name="customerId"><option value="">All customers</option>
+      <option th:each="c : ${customers}" th:value="${c.id}" th:text="${c.name}" th:selected="${param.customerId != null and param.customerId[0] == '' + c.id}"></option></select></div>
+    <div class="f"><label class="form-label">Status</label><select class="form-select" name="status"><option value="">Any</option>
+      <option value="DRAFT" th:selected="${param.status != null and param.status[0]=='DRAFT'}">Draft</option>
+      <option value="ISSUED" th:selected="${param.status != null and param.status[0]=='ISSUED'}">Issued</option>
+      <option value="VOIDED" th:selected="${param.status != null and param.status[0]=='VOIDED'}">Voided</option></select></div>
+    <div class="f"><label class="form-label">From</label><input type="date" class="form-control" name="from" th:value="${param.from}"></div>
+    <div class="f"><label class="form-label">To</label><input type="date" class="form-control" name="to" th:value="${param.to}"></div>
+    <div class="form-check mb-2"><input type="checkbox" class="form-check-input" id="ov" name="overdue" value="true" th:checked="${param.overdue != null}"><label class="form-check-label" for="ov">Overdue only</label></div>
+    <button class="btn btn-outline-secondary">Filter</button>
+  </form>
+
+  <div class="card">
+    <div class="table-wrap"><table class="table table-modern">
+      <thead><tr><th>Invoice</th><th>Customer</th><th class="d-none d-md-table-cell">Due</th><th>Status</th><th class="num d-none d-md-table-cell">Total</th><th class="num d-none d-xl-table-cell">Paid</th><th class="num">Balance</th><th class="text-end">Actions</th></tr></thead>
+      <tbody><tr th:each="r : ${rows}">
+        <td><a class="strong" th:href="@{/invoices/{id}(id=${r.id()})}" th:text="${r.number() ?: 'Draft #' + r.id()}"></a><div class="cell-sub" th:text="${@fmt.date(r.date())}"></div></td>
+        <td th:text="${r.customer()}"></td>
+        <td class="d-none d-md-table-cell"><span th:text="${@fmt.date(r.due())}"></span><div class="cell-sub text-red" th:if="${r.overdue()}" th:text="${r.daysOverdue() + ' days overdue'}"></div></td>
+        <td><span th:replace="~{fragments :: docBadge(${r.status().name()})}"></span>
+            <th:block th:if="${r.status().name()=='ISSUED'}"><span th:replace="~{fragments :: payBadge(${r.paymentStatus().name()})}"></span></th:block></td>
+        <td class="num d-none d-md-table-cell" th:text="${@fmt.money(r.total())}"></td>
+        <td class="num muted d-none d-xl-table-cell" th:text="${@fmt.money(r.paid())}"></td>
+        <td class="num fw-semibold" th:text="${@fmt.money(r.balance())}"></td>
+        <td class="text-end text-nowrap"><div class="row-actions">
+          <a class="btn btn-sm btn-light" th:href="@{/invoices/{id}/print(id=${r.id()})}" target="_blank" title="Preview"><svg th:replace="~{fragments :: icon('eye')}"></svg><span class="lbl">Preview</span></a>
+          <a class="btn btn-sm btn-light" th:href="@{/invoices/{id}/print(id=${r.id()})(autoprint=1)}" target="_blank" title="Print"><svg th:replace="~{fragments :: icon('printer')}"></svg><span class="lbl">Print</span></a>
+          <a class="btn btn-sm btn-light" th:href="@{/invoices/{id}/pdf(id=${r.id()})}" title="Download PDF"><svg th:replace="~{fragments :: icon('download')}"></svg><span class="lbl">PDF</span></a></div></td></tr></tbody></table></div>
+    <div class="empty" th:if="${#lists.isEmpty(rows)}"><svg th:replace="~{fragments :: icon('invoice')}"></svg><div>No invoices match these filters.</div></div>
+  </div>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

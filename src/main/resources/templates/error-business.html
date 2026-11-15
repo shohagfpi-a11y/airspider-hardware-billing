@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Cannot complete')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('')}"></div>
+<main class="page" style="max-width:680px">
+  <div class="card card-pad text-center" style="padding:40px 28px">
+    <span class="chip chip-red mx-auto mb-3" style="width:52px;height:52px"><svg th:replace="~{fragments :: icon('alert')}"></svg></span>
+    <h1 class="h4 fw-bold">This could not be completed</h1>
+    <p class="muted mb-4" th:text="${message}"></p>
+    <a class="btn btn-primary" th:href="${back ?: '/'}"><svg th:replace="~{fragments :: icon('arrow-left')}"></svg>Go back</a>
+  </div>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Audit log')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('audit')}"></div>
+<main class="page">
+  <div class="page-head"><div><h1>Audit log</h1><p>The latest 300 financial and settings changes (times in UTC). Entries cannot be edited.</p></div></div>
+  <div class="card">
+    <div class="table-wrap"><table class="table table-modern">
+      <thead><tr><th>When</th><th>User</th><th>Action</th><th>Record</th><th>Details</th></tr></thead>
+      <tbody><tr th:each="a : ${rows}">
+        <td class="text-nowrap"><span th:text="${#temporals.format(a.at, 'dd/MM/yyyy', 'UTC')}"></span><div class="cell-sub" th:text="${#temporals.format(a.at, 'HH:mm:ss', 'UTC')}"></div></td>
+        <td th:text="${a.username}"></td>
+        <td><span class="badge text-bg-light mono" th:text="${a.action}"></span></td>
+        <td class="text-nowrap cell-sub" th:text="${a.entityType + ' #' + a.entityId}"></td>
+        <td th:text="${a.details}"></td></tr></tbody></table></div>
+  </div>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

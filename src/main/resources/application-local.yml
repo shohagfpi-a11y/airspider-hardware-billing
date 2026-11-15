@@ -1,0 +1,17 @@
+# Local testing profile: embedded real PostgreSQL (no installation needed).
+spring:
+  thymeleaf:
+    cache: false
+server:
+  port: 8080
+  forward-headers-strategy: none   # no proxy locally: never trust client-supplied X-Forwarded-For
+  servlet:
+    session:
+      cookie:
+        secure: false
+app:
+  local:
+    embedded-postgres: true
+    pg-port: 54329
+    pg-data-dir: ./data/pg
+  seed-demo-data: ${SEED_DEMO:true}

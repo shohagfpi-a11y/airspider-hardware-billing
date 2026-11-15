@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Bank account')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('banks')}"></div>
+<main class="page page-narrow">
+  <div class="crumb"><a class="back-btn" th:href="@{/banks}"><svg th:replace="~{fragments :: icon('arrow-left')}"></svg>Back to Bank accounts</a><span class="crumb-path"><a th:href="@{/banks}">Bank accounts</a> / <span th:text="${form.id == null} ? 'New' : 'Edit'"></span></span></div>
+  <div class="page-head"><div><h1 th:text="${form.id == null} ? 'New bank account' : 'Edit bank account'"></h1><p>Printed on invoices when the payment is set to Bank.</p></div></div>
+  <div th:replace="~{fragments :: flash}"></div>
+  <form th:action="@{/banks}" th:object="${form}" method="post" class="card">
+    <input type="hidden" th:field="*{id}">
+    <div class="form-section">
+      <div class="row g-3">
+        <div class="col-12 col-md-6"><label class="form-label required">Bank name</label><input class="form-control" th:field="*{bankName}" th:classappend="${#fields.hasErrors('bankName')} ? 'is-invalid'"><div class="invalid-feedback" th:errors="*{bankName}"></div></div>
+        <div class="col-12 col-md-6"><label class="form-label required">Account holder</label><input class="form-control" th:field="*{accountHolder}" th:classappend="${#fields.hasErrors('accountHolder')} ? 'is-invalid'"><div class="invalid-feedback" th:errors="*{accountHolder}"></div></div>
+        <div class="col-12 col-md-5"><label class="form-label">Account number</label><input class="form-control mono" th:field="*{accountNumber}"></div>
+        <div class="col-12 col-md-7"><label class="form-label">IBAN</label><input class="form-control mono" th:field="*{iban}"></div>
+        <div class="col-6 col-md-4"><label class="form-label">SWIFT / BIC</label><input class="form-control mono" th:field="*{swift}"></div>
+        <div class="col-6 col-md-3"><label class="form-label required">Currency</label><input class="form-control" th:field="*{currency}" th:classappend="${#fields.hasErrors('currency')} ? 'is-invalid'"></div>
+        <div class="col-12 col-md-5"><label class="form-label">Branch <span class="hint fw-normal">(optional)</span></label><input class="form-control" th:field="*{branch}"></div>
+      </div>
+    </div>
+    <div class="form-section d-flex flex-wrap gap-4">
+      <div class="form-check form-switch"><input type="checkbox" class="form-check-input" th:field="*{active}"><label class="form-check-label" for="active">Active</label></div>
+      <div class="form-check form-switch"><input type="checkbox" class="form-check-input" th:field="*{defaultAccount}"><label class="form-check-label" for="defaultAccount">Default account (pre-selected when Bank is chosen)</label></div>
+    </div>
+    <div class="form-actions"><a class="btn btn-light" th:href="@{/banks}">Cancel</a><button class="btn btn-primary"><svg th:replace="~{fragments :: icon('check')}"></svg>Save account</button></div>
+  </form>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Products')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('items')}"></div>
+<main class="page">
+  <div class="page-head">
+    <div><h1>Products &amp; services</h1><p>Reusable items for invoices. Codes are permanent and never reused.</p></div>
+    <div class="actions"><a class="btn btn-primary" th:if="${me.canWrite()}" th:href="@{/items/new}"><svg th:replace="~{fragments :: icon('plus')}"></svg>New product</a></div>
+  </div>
+  <div th:replace="~{fragments :: flash}"></div>
+
+  <form class="card filter-bar mb-3" method="get">
+    <div class="f grow"><label class="form-label">Search</label>
+      <div class="search-box"><svg th:replace="~{fragments :: icon('search')}"></svg><input class="form-control" name="q" th:value="${q}" placeholder="Code, barcode or name"></div></div>
+    <button class="btn btn-outline-secondary">Search</button>
+  </form>
+
+  <div class="card">
+    <div class="table-wrap"><table class="table table-modern">
+      <thead><tr><th>Product</th><th>Barcode</th><th>Unit</th><th class="num">Price</th><th class="num">Tax</th><th>Warranty</th><th></th></tr></thead>
+      <tbody><tr th:each="i : ${items}">
+        <td><div class="cell-title"><span th:text="${i.name}"></span> <span class="badge text-bg-secondary" th:unless="${i.active}">Inactive</span></div>
+          <div class="cell-sub"><span class="mono" th:text="${i.code}"></span> &middot; <span th:text="${i.itemType.name() == 'SERVICE'} ? 'Service' : 'Product'"></span><span th:if="${i.serialNo}"> &middot; S/N <span class="mono" th:text="${i.serialNo}"></span></span></div></td>
+        <td class="mono muted" th:text="${i.barcode}"></td>
+        <td th:text="${i.unit}"></td>
+        <td class="num fw-semibold" th:text="${i.defaultPrice.stripTrailingZeros().scale() > 2 ? i.defaultPrice.stripTrailingZeros().toPlainString() : @fmt.money(i.defaultPrice)}"></td>
+        <td class="num muted" th:text="${@fmt.rate(i.taxRate)}"></td>
+        <td><span class="badge text-bg-success" th:if="${i.warrantyEnabled}" th:text="${i.warrantyDuration + ' ' + i.warrantyUnit.name().toLowerCase()}"></span></td>
+        <td class="text-end"><a class="btn btn-sm btn-outline-secondary" th:if="${me.canWrite()}" th:href="@{/items/{id}/edit(id=${i.id})}"><svg th:replace="~{fragments :: icon('edit')}"></svg>Edit</a></td></tr></tbody></table></div>
+    <div class="empty" th:if="${#lists.isEmpty(items)}"><svg th:replace="~{fragments :: icon('box')}"></svg><div>No products yet.</div></div>
+  </div>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Invoice')}"></head>
+<body>
+<div th:replace="~{fragments :: nav('invoices')}"></div>
+<main class="page">
+  <div class="crumb"><a class="back-btn" th:href="@{/invoices}"><svg th:replace="~{fragments :: icon('arrow-left')}"></svg>Back to Invoices</a><span class="crumb-path"><a th:href="@{/invoices}">Invoices</a> / <span th:text="${inv.invoiceNumber ?: 'Draft #' + inv.id}"></span></span></div>
+  <div class="page-head">
+    <div>
+      <h1><span th:text="${inv.invoiceNumber ?: 'Draft #' + inv.id}"></span>
+        <span class="align-middle" th:insert="~{fragments :: docBadge(${d.status()})}"></span>
+        <th:block th:if="${d.status()=='ISSUED'}"><span class="align-middle" th:insert="~{fragments :: payBadge(${d.paymentStatus()})}"></span></th:block>
+        <span class="badge text-bg-danger align-middle" th:if="${d.overdue()}">Overdue</span></h1>
+      <p><a th:href="@{/customers/{id}(id=${inv.customer.id})}" th:text="${d.customer().name()}"></a> &middot; issued <span th:text="${d.invoiceDate()}"></span> &middot; due <span th:text="${d.dueDate()}"></span></p>
+    </div>
+    <div class="actions">
+      <a class="btn btn-light" th:href="@{/invoices/{id}/print(id=${inv.id})}" target="_blank"><svg th:replace="~{fragments :: icon('eye')}"></svg>Preview</a>
+      <a class="btn btn-light" th:href="@{/invoices/{id}/print(id=${inv.id},autoprint=1)}" target="_blank"><svg th:replace="~{fragments :: icon('printer')}"></svg>Print</a>
+      <a class="btn btn-light" th:href="@{/invoices/{id}/pdf(id=${inv.id})}"><svg th:replace="~{fragments :: icon('download')}"></svg>PDF</a>
+      <form th:if="${inv.draft and me.canWrite()}" th:action="@{/invoices/{id}/delete(id=${inv.id})}" method="post" onsubmit="return confirm('Delete this draft?');">
+        <button class="btn btn-outline-danger w-100">Delete</button></form>
+      <a class="btn btn-light" th:if="${inv.draft and me.canWrite()}" th:href="@{/invoices/{id}/edit(id=${inv.id})}"><svg th:replace="~{fragments :: icon('edit')}"></svg>Edit</a>
+      <form th:if="${inv.draft and me.canWrite()}" th:action="@{/invoices/{id}/issue(id=${inv.id})}" method="post"
+            onsubmit="return confirm('Issue this invoice? It gets its permanent number and can no longer be edited.');">
+        <button class="btn btn-primary w-100"><svg th:replace="~{fragments :: icon('check')}"></svg>Issue invoice</button></form>
+      <a class="btn btn-success" th:if="${d.status()=='ISSUED' and me.canWrite()}" th:href="@{/payments/new(customerId=${inv.customer.id},invoiceId=${inv.id})}"><svg th:replace="~{fragments :: icon('wallet')}"></svg>Record payment</a>
+    </div>
+  </div>
+  <div th:replace="~{fragments :: flash}"></div>
+  <div class="alert alert-danger" th:if="${d.voided()}" th:text="${d.voidInfo()}"></div>
+  <div class="alert alert-warning" th:if="${d.draft()}">This is a draft. Company and customer details shown are current; they are frozen when you issue it.</div>
+
+  <div class="row g-3">
+    <div class="col-12 col-xl-8">
+      <div class="card mb-3">
+        <div class="card-head"><h2>Items</h2><span class="sub" th:text="${#lists.size(d.lines()) + ' lines'}"></span></div>
+        <div class="table-wrap"><table class="table table-modern">
+          <thead><tr><th>#</th><th>Description</th><th class="num">Qty</th><th class="num">Price</th><th class="num" th:if="${d.hasDiscount()}">Disc</th><th class="num">Net</th><th class="num" th:text="${d.taxLabel()}">VAT</th><th class="num">Total</th></tr></thead>
+          <tbody><tr th:each="l : ${d.lines()}"><td class="muted" th:text="${l.no()}"></td>
+            <td><div class="cell-title" th:text="${l.description()}"></div>
+              <div class="cell-sub"><span class="mono" th:if="${l.code()}" th:text="${l.code()}"></span><span th:if="${l.serial()}"> &middot; S/N <span th:text="${l.serial()}"></span></span></div>
+              <div class="cell-sub text-green" th:if="${l.warranty()}" th:text="${l.warranty()}"></div></td>
+            <td class="num"><span th:text="${l.qty()}"></span> <span class="cell-sub" th:text="${l.unit()}"></span></td>
+            <td class="num" th:text="${l.price()}"></td><td class="num" th:if="${d.hasDiscount()}" th:text="${l.discount()}"></td>
+            <td class="num" th:text="${l.net()}"></td><td class="num"><span th:text="${l.tax()}"></span><div class="cell-sub" th:text="${l.taxRate()}"></div></td>
+            <td class="num fw-semibold" th:text="${l.total()}"></td></tr></tbody></table></div>
+      </div>
+
+      <div class="card" th:if="${d.status()!='DRAFT'}">
+        <div class="card-head"><h2>Payments applied</h2><span class="sub" th:if="${d.status()=='ISSUED'}">as of <span th:text="${d.asOf()}"></span></span></div>
+        <div class="table-wrap"><table class="table table-modern">
+          <thead><tr><th>Receipt</th><th class="num">Amount</th><th>Status</th><th></th></tr></thead>
+          <tbody><tr th:each="a : ${allocs}">
+            <td><a class="strong" th:href="@{/payments/{id}(id=${a.paymentId()})}" th:text="${a.receiptNo()}"></a><div class="cell-sub" th:text="${@fmt.date(a.date())}"></div></td>
+            <td class="num fw-semibold" th:text="${@fmt.money(a.amount())}"></td>
+            <td><span th:if="${a.status()=='ACTIVE'}" class="badge text-bg-success">Active</span><span th:if="${a.status()=='REVERSED'}" class="badge text-bg-danger" th:title="${a.reason()}">Reversed</span></td>
+            <td class="text-end"><form th:if="${me.admin() and a.status()=='ACTIVE'}" th:action="@{/allocations/{id}/reverse(id=${a.id()})}" method="post" class="d-inline-flex gap-1"
+                  onsubmit="return confirm('Reverse this allocation?');"><input type="hidden" name="returnTo" th:value="${inv.id}"><input type="hidden" name="area" value="invoices">
+                <input class="form-control form-control-sm" name="reason" placeholder="Reason" required style="min-height:32px"><button class="btn btn-sm btn-outline-danger">Reverse</button></form></td></tr></tbody></table></div>
+        <div class="empty" th:if="${#lists.isEmpty(allocs)}">No payments applied yet.</div>
+        <form th:if="${d.status()=='ISSUED' and me.canWrite() and !#lists.isEmpty(creditReceipts)}" th:action="@{/invoices/{id}/apply-credit(id=${inv.id})}" method="post"
+              class="card-foot d-flex flex-wrap gap-2 align-items-end">
+          <div class="flex-grow-1"><label class="form-label">Apply customer advance credit</label>
+            <select class="form-select" name="paymentId"><option th:each="r : ${creditReceipts}" th:value="${r.id()}" th:text="${r.receiptNo() + ' - available ' + @fmt.money(r.available())}"></option></select></div>
+          <div style="width:160px"><label class="form-label">Amount</label><input class="form-control" name="amount" inputmode="decimal" required></div>
+          <button class="btn btn-primary">Apply credit</button></form>
+      </div>
+    </div>
+
+    <div class="col-12 col-xl-4">
+      <div class="card card-pad mb-3">
+        <div class="label muted fw-semibold small" th:text="${d.draft() ? 'Invoice total' : 'Balance due'}">Balance due</div>
+        <div class="hero-amount"><small class="fs-6 muted" th:text="${d.currency()}"></small> <span th:text="${d.draft() ? d.grand() : d.balance()}"></span></div>
+        <table class="totals-box w-100 mt-2">
+          <tr><td>Subtotal</td><td class="num" th:text="${d.gross()}"></td></tr>
+          <tr th:if="${d.hasDiscount()}"><td>Discount</td><td class="num" th:text="${'-' + d.discount()}"></td></tr>
+          <tr><td th:text="${d.taxLabel()}"></td><td class="num" th:text="${d.tax()}"></td></tr>
+          <tr class="grand"><td>Grand total</td><td class="num" th:text="${d.grand()}"></td></tr>
+          <tr th:if="${d.status()=='ISSUED'}"><td>Paid / applied</td><td class="num text-green" th:text="${d.paid()}"></td></tr>
+        </table>
+      </div>
+      <div class="card card-pad mb-3">
+        <h2 class="section-title mb-3">Details</h2>
+        <dl class="kv-list">
+          <dt>Customer</dt><dd th:text="${d.customer().name()}"></dd>
+          <dt th:if="${d.customer().taxNumber()}">Customer TRN</dt><dd th:if="${d.customer().taxNumber()}" class="mono" th:text="${d.customer().taxNumber()}"></dd>
+          <dt th:if="${d.deliveryNote()}">Delivery note</dt><dd th:if="${d.deliveryNote()}" th:text="${d.deliveryNote()}"></dd>
+          <dt th:if="${d.lpo()}">LPO no.</dt><dd th:if="${d.lpo()}" th:text="${d.lpo()}"></dd>
+          <dt th:if="${d.deliveryDate() != ''}">Delivered</dt><dd th:if="${d.deliveryDate() != ''}" th:text="${d.deliveryDate()}"></dd>
+          <dt>Payment</dt><dd th:text="${d.bank() != null} ? ${'Bank - ' + d.bank().bankName()} : 'Cash'"></dd>
+          <dt th:if="${d.paymentTerms()}">Terms</dt><dd th:if="${d.paymentTerms()}" th:text="${d.paymentTerms()}"></dd>
+          <dt th:if="${d.notes()}">Notes</dt><dd th:if="${d.notes()}" th:text="${d.notes()}"></dd>
+        </dl>
+      </div>
+      <div class="card card-pad" th:if="${d.status()=='ISSUED' and me.admin()}">
+        <h2 class="section-title">Void invoice</h2>
+        <p class="hint mb-2">The invoice and its number stay on record. Reverse any payments first.</p>
+        <form th:action="@{/invoices/{id}/void(id=${inv.id})}" method="post" class="d-flex gap-2" onsubmit="return confirm('Void this invoice permanently?');">
+          <input class="form-control" name="reason" placeholder="Reason (required)" required><button class="btn btn-outline-danger">Void</button></form>
+      </div>
+    </div>
+  </div>
+</main>
+<th:block th:replace="~{fragments :: scripts}"></th:block>
+</body>
+</html>
